@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Denna’s Trading — Agenda, 2 maanden</title>
+<link rel="stylesheet" href="css/system.css">
+<link rel="stylesheet" href="css/editor.css">
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <span class="mark">Denna’s Trading</span>
+    <a class="tab" href="agenda.html">Volledige agenda</a>
+    <a class="tab on" href="snapshot.html">2 maanden</a>
+    <span class="spacer"></span>
+    <button class="btn" id="preview">Voorbeeld</button>
+    <span class="sep"></span>
+    <button class="btn primary" id="png">PNG downloaden</button>
+    <button class="btn" id="pdf">PDF / print</button>
+    <span class="sep"></span>
+    <button class="btn" id="save">Opslaan</button>
+    <button class="btn" id="open">Openen</button>
+    <button class="btn" id="share">Deel link</button>
+    <button class="btn" id="reset">Herstel</button>
+  </header>
+  <div class="main">
+    <div class="stage"><div class="stage-inner"><div class="page"></div></div></div>
+    <aside class="panel" id="panel"></aside>
+  </div>
+</div>
+
+<script src="js/vendor/qrcode.min.js"></script>
+<script src="js/vendor/html-to-image.min.js"></script>
+<script src="js/brand.js"></script>
+<script src="js/store.js"></script>
+<script src="js/editor.js"></script>
+<script src="js/panel.js"></script>
+<script src="js/snapshot.js"></script>
+<script>
+  /* The window picker. It only chooses which two months are shown —
+     the shows themselves are the same list the full agenda uses, so
+     the two artboards can never drift apart. */
+  AgendaPanel.init({
+    mount: '#panel',
+    extra: function (mount, st) {
+      var el = Editor.el;
+      mount.appendChild(el('h2', { text: 'Welke twee maanden' }));
+      var picker = el('input', {
+        type: 'month', value: st.snapshot.from,
+        onchange: function () {
+          Store.setPath('snapshot.from', this.value, true);
+          AgendaPanel.redrawAll();
+        }
+      });
+      mount.appendChild(el('div', { class: 'field' }, [
+        el('label', { text: 'Beginmaand' }), picker
+      ]));
+      mount.appendChild(el('button', {
+        class: 'btn', style: 'width:100%;border-color:rgba(27,58,92,.28);color:var(--ink-navy)',
+        text: 'Naar deze maand',
+        onclick: function () {
+          var d = new Date();
+          var m = d.getFullYear() + '-' + (d.getMonth() + 1 < 10 ? '0' : '') + (d.getMonth() + 1);
+          Store.setPath('snapshot.from', m, true);
+          AgendaPanel.redrawAll();
+        }
+      }));
+      mount.appendChild(el('p', { class: 'hint', style: 'margin-top:10px', text:
+        'Deze kaart toont automatisch de beurzen uit die twee maanden. ' +
+        'Beurzen beheer je hieronder — ze gelden voor beide kaarten.' }));
+    }
+  });
+  Snapshot.init();
+  Editor.wireBar({ filename: 'dennas-agenda-2maanden.png', onData: function () { Snapshot.render(); } });
+</script>
+</body>
+</html>

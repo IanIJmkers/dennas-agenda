@@ -1,0 +1,157 @@
+/* ============================================================
+   EDITOR CHROME
+
+   Everything in this file is the tool, not the artwork. None of it
+   may reach an export: the PNG writer is handed a filter that drops
+   `.chrome`, and `body.exporting` kills every hover affordance in
+   case the cursor happens to be resting on a field when the button
+   is pressed.
+
+   The chrome borrows the brand palette so the tool and the thing
+   being made read as one product, but it is deliberately quieter —
+   no Anton, no gold rules, nothing that competes with the artboard.
+   ============================================================ */
+
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:#DEDAD1;color:var(--ink-navy);
+  font-family:'Inter',system-ui,sans-serif;font-size:13px;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+
+.app{display:flex;flex-direction:column;height:100%}
+
+/* ---------- toolbar ---------- */
+.bar{
+  display:flex;align-items:center;gap:8px;flex:none;
+  padding:10px 16px;background:var(--ink-navy);color:var(--paper);
+  border-bottom:2px solid var(--gold);
+}
+.bar .mark{
+  font-family:'Archivo Narrow',sans-serif;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.16em;font-size:12px;color:var(--paper);margin-right:6px;white-space:nowrap;
+}
+.bar .sep{width:1px;height:22px;background:rgba(244,241,234,.22);margin:0 4px}
+.bar .spacer{flex:1}
+.tab{
+  padding:7px 13px;border-radius:2px;text-decoration:none;white-space:nowrap;
+  color:rgba(244,241,234,.72);border:1px solid transparent;
+  font-weight:500;letter-spacing:.02em;
+}
+.tab:hover{color:var(--paper);border-color:rgba(244,241,234,.28)}
+.tab.on{color:var(--ink-navy);background:var(--gold);border-color:var(--gold);font-weight:600}
+
+.btn{
+  padding:7px 13px;border:1px solid rgba(244,241,234,.28);background:transparent;
+  color:var(--paper);border-radius:2px;cursor:pointer;white-space:nowrap;
+  transition:background .12s ease,border-color .12s ease;
+}
+.btn:hover{background:rgba(244,241,234,.12);border-color:rgba(244,241,234,.5)}
+.btn.primary{background:var(--gold);border-color:var(--gold);color:var(--ink-navy);font-weight:600}
+.btn.primary:hover{background:#d0ae70}
+.btn:disabled{opacity:.5;cursor:default}
+
+/* ---------- workspace ---------- */
+.main{display:flex;flex:1;min-height:0}
+.stage{
+  flex:1;min-width:0;overflow:auto;padding:28px;
+  display:flex;align-items:flex-start;justify-content:center;
+}
+.stage-inner{position:relative;flex:none}
+.page{box-shadow:0 18px 50px rgba(16,35,58,.22)}
+
+/* ---------- side panel ---------- */
+.panel{
+  width:370px;flex:none;background:var(--paper);border-left:1px solid rgba(27,58,92,.16);
+  overflow:auto;padding:18px 18px 60px;
+}
+.panel h2{
+  font-family:'Inter',sans-serif;font-weight:600;text-transform:uppercase;
+  letter-spacing:.16em;font-size:10px;color:var(--steel-on-paper);
+  margin:22px 0 10px;padding-bottom:7px;border-bottom:1px solid rgba(27,58,92,.14);
+}
+.panel h2:first-child{margin-top:0}
+.hint{color:var(--steel-on-paper);line-height:1.5;margin-bottom:12px;font-size:12px}
+
+.field{margin-bottom:10px}
+.field label{
+  display:block;font-size:10px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.14em;color:var(--steel-on-paper);margin-bottom:4px;
+}
+.field input,.field select{
+  width:100%;padding:8px 9px;border:1px solid rgba(27,58,92,.22);
+  background:#fff;border-radius:2px;
+}
+.field input:focus,.field select:focus{outline:2px solid var(--gold);outline-offset:-1px;border-color:var(--gold)}
+
+/* ---------- the show list ---------- */
+.show{
+  border:1px solid rgba(27,58,92,.16);background:#fff;border-radius:3px;
+  padding:10px;margin-bottom:8px;position:relative;
+}
+.show.active{border-color:var(--gold);box-shadow:0 0 0 2px rgba(195,160,99,.28)}
+.show.dim{opacity:.45}
+.show .row{display:flex;gap:6px}
+.show .row + .row{margin-top:6px}
+.show input{
+  width:100%;padding:6px 8px;border:1px solid rgba(27,58,92,.18);border-radius:2px;background:#fff;
+}
+.show input.name{font-weight:600;letter-spacing:.02em;text-transform:uppercase}
+.show input:focus{outline:2px solid var(--gold);outline-offset:-1px}
+.show .meta{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-top:7px;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--steel-on-paper);font-weight:600;
+}
+.show .kill{
+  border:1px solid rgba(181,55,43,.4);background:transparent;color:var(--seal-red);
+  padding:3px 8px;border-radius:2px;cursor:pointer;font-size:10px;letter-spacing:.1em;
+}
+.show .kill:hover{background:var(--seal-red);color:#fff;border-color:var(--seal-red)}
+.show .marker{color:var(--seal-red)}
+
+/* ---------- warnings ---------- */
+.warn{
+  border-left:3px solid var(--seal-red);background:rgba(181,55,43,.07);
+  padding:9px 11px;margin-bottom:12px;line-height:1.5;color:var(--ink-navy);font-size:12px;
+}
+.warn strong{display:block;margin-bottom:2px}
+.ok{border-left-color:var(--gold);background:rgba(195,160,99,.12)}
+
+/* ---------- in-artboard editing ----------
+   A dotted rule under anything typeable, and only on hover, so the
+   artboard still reads as the finished piece while you work on it. */
+.page [data-edit]{
+  cursor:text;border-radius:1px;
+  box-shadow:0 1px 0 0 rgba(27,58,92,0);
+  transition:box-shadow .12s ease,background-color .12s ease;
+}
+.page [data-edit]:hover{box-shadow:0 1px 0 0 rgba(27,58,92,.35)}
+.page [data-edit]:focus{
+  outline:none;background:rgba(195,160,99,.20);
+  box-shadow:0 1px 0 0 var(--gold);
+}
+.chrome{position:absolute;z-index:9}
+.row-hit{cursor:pointer}
+.row-hit:hover{background:rgba(195,160,99,.13)}
+.row-hit.active{background:rgba(195,160,99,.20)}
+
+body.exporting .page [data-edit]{box-shadow:none!important;background:transparent!important}
+body.exporting .chrome{display:none!important}
+body.preview .page [data-edit]{box-shadow:none!important;background:transparent!important;cursor:default}
+body.preview .chrome{display:none!important}
+
+/* ---------- print / save as PDF ----------
+   The page box is set to the artboard's own pixel size, so a
+   browser PDF comes out at exactly 1080x1350 with live type. */
+@media print{
+  @page{size:1080px 1350px;margin:0}
+  body{background:#fff}
+  .bar,.panel,.chrome{display:none!important}
+  .main,.stage{display:block;padding:0;overflow:visible}
+  .stage-inner{width:auto;height:auto}
+  .page{transform:none!important;box-shadow:none!important;margin:0}
+  .page [data-edit]{box-shadow:none!important;background:transparent!important}
+}

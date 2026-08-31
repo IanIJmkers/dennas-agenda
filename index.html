@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Denna’s Trading — Agenda maken</title>
+<link rel="stylesheet" href="css/system.css">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--paper);color:var(--ink-navy);min-height:100vh;
+    font-family:'Inter',system-ui,sans-serif;display:flex;align-items:center;justify-content:center;padding:32px;
+  }
+  .wrap{max-width:720px;width:100%}
+  .eyebrow{font-weight:600;text-transform:uppercase;letter-spacing:.18em;font-size:12px;color:var(--steel-on-paper)}
+  h1{font-family:'Anton',sans-serif;font-weight:400;text-transform:uppercase;
+     letter-spacing:-.015em;font-size:64px;line-height:.92;margin:14px 0 10px}
+  .lead{color:var(--steel-on-paper);line-height:1.6;max-width:52ch}
+  .hr{height:1.5px;background:var(--gold);margin:26px 0}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:640px){.cards{grid-template-columns:1fr}h1{font-size:44px}}
+  a.card{
+    display:block;text-decoration:none;color:inherit;background:#fff;
+    border:1px solid rgba(27,58,92,.16);border-left:3px solid var(--gold);
+    padding:20px;transition:border-color .15s ease,transform .15s ease;
+  }
+  a.card:hover{border-color:var(--gold);transform:translateY(-2px)}
+  a.card h2{font-family:'Archivo Narrow',sans-serif;font-weight:700;text-transform:uppercase;
+            letter-spacing:.04em;font-size:22px;margin-bottom:6px}
+  a.card p{color:var(--steel-on-paper);line-height:1.5;font-size:13px}
+  .note{margin-top:26px;font-size:12px;color:var(--steel-on-paper);line-height:1.6;
+        border-left:3px solid rgba(27,58,92,.2);padding-left:12px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="eyebrow">Denna’s Trading — beurzen &amp; evenementen</div>
+    <h1>Agenda<br>maken</h1>
+    <p class="lead">Twee kaarten, één lijst met beurzen. Wat je bij de één invult,
+      staat meteen goed bij de ander. Download als PNG voor Instagram.</p>
+    <div class="hr"></div>
+    <div class="cards">
+      <a class="card" href="agenda.html">
+        <h2>Volledige agenda</h2>
+        <p>Alle beurzen op één kaart, verdeeld over twee kolommen met een jaarbalk waar het jaar wisselt.</p>
+      </a>
+      <a class="card" href="snapshot.html">
+        <h2>2 maanden</h2>
+        <p>Alleen wat er binnenkort is, groter gezet. De kaart om te posten als er een beurs aankomt.</p>
+      </a>
+    </div>
+    <p class="note">Je werk wordt bewaard in deze browser op dit apparaat.
+      Wil je het doorsturen of op een andere computer verder? Gebruik <strong>Opslaan</strong>
+      voor een bestand, of <strong>Deel link</strong> voor een link met alles erin.</p>
+  </div>
+</body>
+</html>

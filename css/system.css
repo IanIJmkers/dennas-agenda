@@ -1,0 +1,74 @@
+/* ============================================================
+   DENNA'S TRADING — DESIGN SYSTEM (browser build)
+
+   A port of src/system.css for the editable artboards. The print
+   original authors every measurement in millimetres because 1mm
+   has to survive a press; these two artboards are screen files at
+   a fixed 1080x1350, so the same geometry is authored in pixels
+   and the palette, type roles and depth planes come across
+   unchanged. Nothing here is a new design decision.
+   ============================================================ */
+
+/* ---------- 1. TYPEFACES (self-hosted — no CDN, no tracking) ---------- */
+@font-face{font-family:'Anton';src:url('../fonts/Anton-Regular.ttf') format('truetype');font-weight:400;font-display:block}
+@font-face{font-family:'Archivo Narrow';src:url('../fonts/ArchivoNarrow-Regular.ttf') format('truetype');font-weight:400;font-display:block}
+@font-face{font-family:'Archivo Narrow';src:url('../fonts/ArchivoNarrow-SemiBold.ttf') format('truetype');font-weight:600;font-display:block}
+@font-face{font-family:'Archivo Narrow';src:url('../fonts/ArchivoNarrow-Bold.ttf') format('truetype');font-weight:700;font-display:block}
+@font-face{font-family:'Inter';src:url('../fonts/Inter-Regular.ttf') format('truetype');font-weight:400;font-display:block}
+@font-face{font-family:'Inter';src:url('../fonts/Inter-Medium.ttf') format('truetype');font-weight:500;font-display:block}
+@font-face{font-family:'Inter';src:url('../fonts/Inter-SemiBold.ttf') format('truetype');font-weight:600;font-display:block}
+
+/* ---------- 2. PALETTE (strict — six values, nothing else) ---------- */
+:root{
+  --ink-navy:#1B3A5C;   /* primary dark field                    */
+  --deep-ink:#10233A;   /* shadow plane                          */
+  --gold:#C3A063;       /* accents, rules, secondary type        */
+  --pale-gold:#E3D2AC;  /* tints                                 */
+  --paper:#F4F1EA;      /* light field                           */
+  --seal-red:#B5372B;   /* max ONE element per layout            */
+  --steel-on-paper:#40587A;  /* navy lightened toward paper */
+  --steel-on-navy:#A8BBD0;   /* paper darkened toward navy  */
+}
+
+/* ---------- 3. TYPE ROLES ---------- */
+.display{
+  font-family:'Anton',sans-serif;font-weight:400;
+  text-transform:uppercase;letter-spacing:-0.015em;line-height:0.92;
+}
+.body{font-family:'Inter',sans-serif;font-weight:400;line-height:1.45;}
+.body-med{font-family:'Inter',sans-serif;font-weight:500;line-height:1.45;}
+.label{
+  font-family:'Inter',sans-serif;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.18em;line-height:1;
+}
+.label-narrow{
+  font-family:'Archivo Narrow',sans-serif;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.18em;line-height:1;
+}
+
+/* ---------- 4. THE ARTBOARD ----------
+   Fixed 1080x1350 (Instagram 4:5). It is never resized — the page
+   scales it with a transform so that what is exported is always
+   the same pixel grid the layout was authored on. */
+.page{
+  position:relative;overflow:hidden;background:var(--paper);
+  width:1080px;height:1350px;
+  transform-origin:top left;
+}
+.page *{
+  margin:0;padding:0;box-sizing:border-box;
+  font-variant-numeric:tabular-nums lining-nums;
+  font-feature-settings:"tnum" 1,"lnum" 1;
+}
+
+/* ---------- 5. DEPTH PLANES (back to front) ----------
+   plane 1: field + traditional pattern at 4-8%
+   plane 2: one oversized graphic gesture at 6-10%
+   plane 3: content — type, panels, hairline rules
+   plane 4: foreground accents — registration marks, brackets */
+.plane-1{position:absolute;inset:0;z-index:1;}
+.plane-2{position:absolute;inset:0;z-index:2;pointer-events:none;}
+.plane-3{position:absolute;inset:0;z-index:3;}
+.plane-4{position:absolute;inset:0;z-index:4;pointer-events:none;}
+
+.logo-slot svg{width:100%;height:100%;display:block}
