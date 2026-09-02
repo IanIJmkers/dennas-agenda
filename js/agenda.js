@@ -51,44 +51,76 @@
     }, 0);
   }
 
+  /* Two candidate layouts, and the one that sets the larger show name
+     wins. That replaces a row-count threshold, which was always a
+     guess: whether one column or two reads bigger depends on how long
+     the names are and how much depth is left after the header, not on
+     how many shows there happen to be. */
   function layout(rows, F, avail) {
     var groups = groupsOf(rows), cells = cellsOf(groups), total = unitsOf(cells);
     var COL_W2 = (K.CW - 60) / 2;
-
-    if (rows.length <= 8) {
+    if (!rows.length) {
       return { mode: 'one', groups: groups, cols: [cells], colW: K.CW, colX: [K.SIDE],
-               pitch: Math.min(F.pitchMax1, avail / Math.max(total, 1)) };
+               pitch: F.pitchMax1, sizes: K.sizesFor(F.pitchMax1, K.CW, true, rows) };
     }
 
+    var p1 = Math.min(F.pitchMax1, avail / Math.max(total, 1));
+    var one = { mode: 'one', groups: groups, cols: [cells], colW: K.CW, colX: [K.SIDE],
+                pitch: p1, sizes: K.sizesFor(p1, K.CW, true, rows) };
+
+    /* Walk the split and keep the one that balances best. A band may
+       not close column one: it would sit at the foot of a column whose
+       shows all belong to the year above it. */
     var best = null, run = 0, i;
     for (i = 1; i < cells.length; i++) {
       run += cells[i - 1].kind === 'band' ? K.BAND_RATIO : 1;
-      if (cells[i - 1].kind === 'band') continue;       /* no orphan band */
+      if (cells[i - 1].kind === 'band') continue;
       var diff = Math.abs(run - (total - run));
       if (!best || diff < best.diff) best = { at: i, diff: diff, a: run, b: total - run };
     }
-    if (!best) best = { at: cells.length, a: total, b: 0 };
+    if (!best) return one;
 
-    /* No floor on the pitch: a floor would let a long agenda run
-       past the footer rule. Shrinking keeps the artboard intact and
-       the panel warns long before it stops being readable. */
-    return {
+    /* No floor on the pitch: a floor would let a long agenda run past
+       the footer rule. Shrinking keeps the artboard intact and the
+       panel warns long before it stops being readable. */
+    var p2 = Math.min(F.pitchMax2, avail / Math.max(best.a, best.b));
+    var two = {
       mode: 'two', groups: groups,
       cols: [cells.slice(0, best.at), cells.slice(best.at)],
       colW: COL_W2, colX: [K.SIDE, K.SIDE + COL_W2 + 60],
-      pitch: Math.min(F.pitchMax2, avail / Math.max(best.a, best.b))
+      pitch: p2, sizes: K.sizesFor(p2, COL_W2, false, rows)
     };
+    return K.betterPlan(one, two);
+  }
+
+  /* How much depth the list needs, in row-heights, before anything is
+     drawn. The header is asked to give way against the *cheaper* of
+     the two layouts, so it only shrinks when even the better shape
+     cannot make the rows readable. */
+  function unitsNeeded(rows) {
+    var cells = cellsOf(groupsOf(rows));
+    var total = unitsOf(cells);
+    if (!rows.length) return 1;
+    var half = 0, run = 0, best = Infinity, i;
+    for (i = 1; i < cells.length; i++) {
+      run += cells[i - 1].kind === 'band' ? K.BAND_RATIO : 1;
+      if (cells[i - 1].kind === 'band') continue;
+      half = Math.max(run, total - run);
+      if (half < best) best = half;
+    }
+    return Math.min(total, best) + K.BAND_RATIO;   /* + the leading year band */
   }
 
   function build() {
     var st = S.load(), F = K.formatOf(st);
     K.useTheme(st);
     var rows = S.sorted(st.events);
+    var scale = K.headerScale(F, unitsNeeded(rows));
     var head = K.header(st, F, {
       eyebrow: st.meta.eyebrow, eyebrowPath: 'meta.eyebrow',
       heading: st.meta.heading, headingPath: 'meta.heading',
       range: S.rangeLabel(rows)
-    });
+    }, scale);
 
     var g0 = rows.length ? groupsOf(rows)[0] : null;
     var bandTop = head.bodyTop;
@@ -118,7 +150,7 @@
           }, L.pitch);
           y += K.bandHeight(L.pitch);
         } else {
-          html += K.eventRow(x, y, L.colW, c.event, L.pitch);
+          html += K.eventRow(x, y, L.colW, c.event, L.pitch, L.sizes);
           hits.push({ id: c.event._id, x: x, y: y, w: L.colW, h: L.pitch });
           y += L.pitch;
         }

@@ -47,41 +47,75 @@
 
     var span = S.MONTHS_SHORT[months[0].m] + ' — ' + S.MONTHS_SHORT[months[1].m] +
                ' ’' + String(months[1].y).slice(2);
+    /* the cheaper of the two shapes decides how much the header
+       has to give back, if anything */
+    var uOne = blocks.reduce(function (n, b) {
+      return n + K.BAND_RATIO + Math.max(b.events.length, 1); }, 0);
+    var uTwo = Math.max(
+      K.BAND_RATIO + Math.max(blocks[0].events.length, 1),
+      K.BAND_RATIO + Math.max(blocks[1].events.length, 1));
     var head = K.header(st, F, {
       eyebrow: st.snapshot.eyebrow, eyebrowPath: 'snapshot.eyebrow',
       heading: st.snapshot.heading, headingPath: 'snapshot.heading',
       range: span
-    });
+    }, K.headerScale(F, Math.min(uOne, uTwo)));
 
-    var units = blocks.reduce(function (n, b) {
-      return n + K.BAND_RATIO + Math.max(b.events.length, 1);
-    }, 0);
+    /* One column, or a month per column? Ten shows over two months is
+       the case that settles it: stacked in one column they set at
+       24px, side by side at 36px, because halving the rows per column
+       more than pays back halving the width. So both are costed and
+       the one that sets the larger show name wins — which for a quiet
+       two months is still the single full-width column. */
     var avail = F.footRule - 28 - head.bodyTop;
-    var pitch = Math.min(F.pitchMax1, avail / units);
+    var unitsOf = function (bs) {
+      return bs.reduce(function (n, b) {
+        return n + K.BAND_RATIO + Math.max(b.events.length, 1);
+      }, 0);
+    };
+    var p1 = Math.min(F.pitchMax1, avail / Math.max(unitsOf(blocks), 1));
+    var one = { cols: [blocks], colW: K.CW, colX: [K.SIDE], pitch: p1,
+                sizes: K.sizesFor(p1, K.CW, true, rows) };
+
+    var COL_W2 = (K.CW - 60) / 2;
+    var p2 = Math.min(F.pitchMax2, avail /
+      Math.max(unitsOf([blocks[0]]), unitsOf([blocks[1]]), 1));
+    var two = { cols: [[blocks[0]], [blocks[1]]], colW: COL_W2,
+                colX: [K.SIDE, K.SIDE + COL_W2 + 60], pitch: p2,
+                sizes: K.sizesFor(p2, COL_W2, false, rows) };
+
+    var L = K.betterPlan(one, two);
+    var pitch = L.pitch;
 
     var hits = [], html = K.ground(F, head.logoCx, head.logoCy) + '<div class="plane-3">' + head.html;
-    var y = head.bodyTop;
+    var bottom = head.bodyTop;
 
-    blocks.forEach(function (b, bi) {
-      html += K.band(K.SIDE, y, K.CW,
-        { label: S.MONTHS[b.month.m], sub: String(b.month.y), tick: bi === 0 }, pitch);
-      y += K.bandHeight(pitch);
-      if (!b.events.length) {
-        html += K.emptyRow(y, pitch);
-        y += pitch;
-        return;
-      }
-      b.events.forEach(function (e) {
-        html += K.eventRow(K.SIDE, y, K.CW, e, pitch);
-        hits.push({ id: e._id, x: K.SIDE, y: y, w: K.CW, h: pitch });
-        y += pitch;
+    L.cols.forEach(function (col, ci) {
+      var x = L.colX[ci], y = head.bodyTop;
+      col.forEach(function (b, bi) {
+        html += K.band(x, y, L.colW,
+          { label: S.MONTHS[b.month.m], sub: String(b.month.y),
+            tick: ci === 0 && bi === 0 }, pitch);
+        y += K.bandHeight(pitch);
+        if (!b.events.length) {
+          html += K.emptyRow(y, pitch, x, L.colW);
+          y += pitch;
+          return;
+        }
+        b.events.forEach(function (e) {
+          html += K.eventRow(x, y, L.colW, e, pitch, L.sizes);
+          hits.push({ id: e._id, x: x, y: y, w: L.colW, h: pitch });
+          y += pitch;
+        });
       });
+      html += K.rule(x, y, L.colW, null, null, 'rowRule');
+      bottom = Math.max(bottom, y);
     });
-    html += K.rule(K.SIDE, y, K.CW);
+
     html += K.footer(st, F) + '</div>';
 
     return { html: html, hits: hits, F: F,
-             layout: { pitch: pitch, mode: 'one', count: rows.length } };
+             layout: { pitch: pitch, mode: L.cols.length > 1 ? 'two' : 'one',
+                       count: rows.length } };
   }
 
   function render() {

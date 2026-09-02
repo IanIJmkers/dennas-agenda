@@ -207,6 +207,13 @@
       b.classList.toggle('primary', on);
     };
     global.addEventListener('resize', fitStage);
+
+    /* The layout is chosen from measured text, and text measured
+       against a fallback face measures wrong. Draw once more when the
+       real fonts have landed. */
+    if (global.document.fonts && global.document.fonts.ready) {
+      global.document.fonts.ready.then(function () { opts.onData(); });
+    }
   }
 
   function markFormat() {

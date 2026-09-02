@@ -19,12 +19,23 @@ story-formaat, en het is het enige formaat waar én het logo groot en centraal k
 er voor het gewone feed-bericht; daar is 570 pixels minder hoogte, dus bij een volle
 agenda wordt de tekst kleiner. De kolom rechts zegt het als dat gebeurt.
 
-**Hoeveel past er leesbaar op?** Tot ongeveer acht beurzen loopt de lijst over de volle
-breedte en is de tekst op zijn grootst. Daarboven splitst hij in twee kolommen en wordt
-elke extra beurs door alle regels betaald. Rond de twintig is de tekst te klein om nog
-van een afstandje te lezen — dat is geen fout in de kaart, dat is wat er gebeurt als er
-te veel op één vlak moet. Gebruik dan de 2-maandenkaart voor wat er echt aankomt en de
-volledige agenda als overzicht.
+**Hoeveel past er leesbaar op?** De kaart kiest zelf de vorm die de tekst het
+grootst zet — één kolom over de volle breedte, of twee kolommen naast elkaar — en
+meet daarvoor de echte namen. Bij een drukke agenda geeft de kop bovendien ruimte
+terug: het logo en het woord AGENDA krimpen mee zodat de lijst kan blijven ademen.
+
+Wat dat concreet oplevert, gemeten in de browser:
+
+| Wat erop staat | Datum | Naam | Plaats |
+|---|---|---|---|
+| 4 beurzen in 2 maanden | 60 px | 43 px | 26 px |
+| **elke week een beurs (10 in 2 maanden)** | **50 px** | **39 px** | **22 px** |
+| 15 beurzen, hele agenda | 47 px | 36 px | 21 px |
+| 26 beurzen, hele agenda | 28 px | 22 px | 12 px |
+
+Rond de 26 beurzen is het te klein om nog van een afstandje te lezen. Dat is geen
+fout in de kaart — dat is wat er gebeurt als er te veel op één vlak moet. Gebruik dan
+de 2-maandenkaart voor wat er echt aankomt, en de volledige agenda als naslag.
 
 ---
 
@@ -148,4 +159,3 @@ Twee manieren, allebei zonder build:
   te lage tekstcontrast en een donkere achtergrond onder het logo worden alle drie
   gemeld met de gemeten verhouding erbij. Een donker thema is uitgeprobeerd en de QR
   daaruit is gedecodeerd.
-# dennas-agenda

@@ -43,10 +43,10 @@
   var FORMATS = {
     story: { key: 'story', h: 1920, logoW: 280, top: 70, head: 130, small: 24,
              footRule: 1640, closing: 56, note: 24, sign: 22, qr: 180,
-             pitchMax1: 170, pitchMax2: 132 },
+             pitchMax1: 176, pitchMax2: 176 },
     post:  { key: 'post',  h: 1350, logoW: 200, top: 52, head: 92,  small: 20,
              footRule: 1130, closing: 44, note: 21, sign: 20, qr: 152,
-             pitchMax1: 150, pitchMax2: 118 }
+             pitchMax1: 150, pitchMax2: 150 }
   };
   function formatOf(st) { return FORMATS[st.meta.format] || FORMATS.story; }
 
@@ -71,7 +71,99 @@
               dateTop: 0.07, nameTop: 0.447, cityTop: 0.762 },
     bandYear: 0.42, bandSub: 0.165
   };
-  var CAP = { date: 68, name: 50, city: 27, bandYear: 70 };
+  /* Ceilings, not targets. They used to be the thing that actually
+     limited the type, which meant the type stopped growing before it
+     reached the edge of its column. Now `sizesFor` measures the real
+     strings and these only stop something absurd. */
+  var CAP = { date: 92, name: 66, city: 34, bandYear: 92 };
+
+  /* ---------- measuring ----------
+     The sizes were guesses: a fraction of the row, clamped by a
+     constant chosen for the longest name anyone had typed so far.
+     That is wrong in both directions — it wastes room on a list of
+     short names and overflows on a long one.
+
+     So the strings get measured. Text width scales linearly with
+     font size, so one measurement at 100px gives the exact largest
+     size that fits any width, and the smallest of those across the
+     list is the size the column can actually hold. */
+  var FACE = {
+    date:  ['Anton', 400, -0.015],
+    name:  ['Archivo Narrow', 600, 0.03],
+    small: ['Inter', 600, 0.16]
+  };
+  var _mctx = null;
+  function mctx() {
+    if (!_mctx) _mctx = document.createElement('canvas').getContext('2d');
+    return _mctx;
+  }
+  function widthAt100(text, face) {
+    if (!text) return 0;
+    var c2 = mctx(), extra = 0;
+    c2.font = face[1] + ' 100px "' + face[0] + '", sans-serif';
+    /* Chromium applies canvas letterSpacing; elsewhere approximate it,
+       which is what the tracked labels need to be measured honestly. */
+    if ('letterSpacing' in c2) c2.letterSpacing = face[2] + 'em';
+    else extra = face[2] * 100 * String(text).length;
+    var w = c2.measureText(String(text)).width + extra;
+    if ('letterSpacing' in c2) c2.letterSpacing = '0px';
+    return w;
+  }
+  function widest(rows, pick, face) {
+    var m = 0;
+    for (var i = 0; i < rows.length; i++) m = Math.max(m, widthAt100(pick(rows[i]), face));
+    return m;
+  }
+
+  /* The three type sizes for a row of this height in a column of this
+     width, given the actual strings that have to fit in it.
+
+       wide    line 1  date | weekday      line 2  name | city
+       narrow  line 1  date                line 2  name
+                                           line 3  city | weekday
+
+     The weekday and city are sized off the pitch first because they
+     are the least important thing on the card; the date and the name
+     then take whatever width is left. */
+  function sizesFor(pitch, colW, wide, rows) {
+    var Z = wide ? SZ.wide : SZ.narrow, GAP = 18;
+    if (!rows.length) return { fd: pitch * Z.date, fn: pitch * Z.name, fc: pitch * Z.city };
+
+    var dateW = widest(rows, function (e) { return S.dateLabel(e); }, FACE.date);
+    var nameW = widest(rows, function (e) { return e.name; }, FACE.name);
+    var cityW = widest(rows, function (e) { return e.city; }, FACE.small);
+    var dayW  = widest(rows, function (e) { return S.dayLabel(e); }, FACE.small);
+
+    var fc = Math.min(pitch * Z.city, CAP.city);
+    /* narrow puts the city and the weekday on one line together */
+    if (!wide && cityW + dayW > 0) {
+      fc = Math.min(fc, (colW - GAP) * 100 / (cityW + dayW));
+    }
+    var dateRoom = wide ? colW - GAP - dayW * fc / 100 : colW;
+    var nameRoom = wide ? colW - GAP - cityW * fc / 100 : colW;
+
+    var fd = Math.min(pitch * Z.date, CAP.date);
+    if (dateW > 0) fd = Math.min(fd, dateRoom * 100 / dateW);
+    var fn = Math.min(pitch * Z.name, CAP.name);
+    if (nameW > 0) fn = Math.min(fn, nameRoom * 100 / nameW);
+
+    return { fd: Math.max(fd, 6), fn: Math.max(fn, 6), fc: Math.max(fc, 6) };
+  }
+
+  /* Given the depth available, how big does each layout actually set
+     the show name? That — not a row count — decides one column or
+     two. Ten shows over two months is the case that proves it: in one
+     column they set at 24px, in two at 36px, because halving the rows
+     per column more than pays for halving the width. */
+  function betterPlan(a, b) {
+    if (!b) return a;
+    if (!a) return b;
+    /* Splitting has to earn it. A quiet two months came out 2% larger
+       in two columns, which bought nothing and cost a half-empty
+       right-hand column; a weekly cadence comes out 60% larger, which
+       is the case worth changing shape for. 8% is the line. */
+    return b.sizes.fn > a.sizes.fn * 1.08 ? b : a;
+  }
   var BAND_RATIO = 0.64;
   /* A column narrower than this cannot hold a date and a name side
      by side at these sizes, so the row stacks to three lines. */
@@ -129,34 +221,61 @@
      word, then the span it covers. Returns where the body starts so
      no caller has to know the header's internal spacing. Every gap
      here is paid for fifteen times over in the list below it. */
-  function header(st, F, copy) {
-    var logoH = B.logoHeight(F.logoW);
-    var y = F.top;
-    var h = B.logo({ w: F.logoW, x: (W - F.logoW) / 2, y: y });
+  /* The header at full size costs 673px — 35% of a story. That is the
+     right price for a card with five shows on it and the wrong one
+     for a card with twenty-six, where the list is what the card is
+     for. So it yields, but only when the list cannot otherwise
+     breathe: `headerScale` stays at 1 until the row pitch would fall
+     below what still reads, then gives depth back until it does, or
+     until the lockup is at 72% — whichever comes first.
+
+     Every measurement in the header scales together, so its depth is
+     exactly linear in the scale and the right one is solved for
+     rather than searched. */
+  var COMFORT_PITCH = 96, HEAD_MIN = 0.72;
+
+  function headerDepth(F, s) {
+    return (s == null ? 1 : s) *
+      (F.top + B.logoHeight(F.logoW) + 26 + F.small + 14 +
+       F.head * 0.92 + 16 + F.small + 28 + 28);
+  }
+  function headerScale(F, units) {
+    var room = F.footRule - 28 - COMFORT_PITCH * Math.max(units, 1);
+    var full = headerDepth(F, 1);
+    if (room >= full) return 1;
+    return Math.max(HEAD_MIN, room / full);
+  }
+
+  function header(st, F, copy, s) {
+    s = s == null ? 1 : s;
+    var logoW = F.logoW * s, head = F.head * s, small = F.small * s;
+    var logoH = B.logoHeight(logoW);
+    var y = F.top * s;
+    var h = B.logo({ w: logoW, x: (W - logoW) / 2, y: y });
     var cx = W / 2, cy = y + logoH / 2;
-    y += logoH + 26;
+    y += logoH + 26 * s;
 
     h += '<div class="label"' + ed(copy.eyebrowPath) + dp('eyebrow') + ' style="position:absolute;left:' + SIDE +
-      'px;top:' + px(y) + ';width:' + CW + 'px;text-align:center;font-size:' + F.small +
-      'px;color:' + T.eyebrow + '">' + esc(copy.eyebrow) + '</div>';
-    y += F.small + 14;
+      'px;top:' + px(y) + ';width:' + CW + 'px;text-align:center;font-size:' + px(small) +
+      ';color:' + T.eyebrow + '">' + esc(copy.eyebrow) + '</div>';
+    y += small + 14 * s;
 
     h += '<div class="display"' + ed(copy.headingPath) + dp('heading') + ' style="position:absolute;left:' + SIDE +
-      'px;top:' + px(y) + ';width:' + CW + 'px;text-align:center;font-size:' + F.head +
-      'px;color:' + T.heading + '">' + esc(copy.heading) + '</div>';
-    y += F.head * 0.92 + 16;
+      'px;top:' + px(y) + ';width:' + CW + 'px;text-align:center;font-size:' + px(head) +
+      ';color:' + T.heading + '">' + esc(copy.heading) + '</div>';
+    y += head * 0.92 + 16 * s;
 
     h += '<div class="label"' + dp('span') + ' style="position:absolute;left:' + SIDE + 'px;top:' + px(y) +
-      ';width:' + CW + 'px;text-align:center;font-size:' + F.small + 'px;color:' +
+      ';width:' + CW + 'px;text-align:center;font-size:' + px(small) + ';color:' +
       T.span + '">' + esc(copy.range) + '</div>';
-    y += F.small + 28;
+    y += small + 28 * s;
 
     h += rule(SIDE, y, CW, T.headRule, null, 'headRule');
     h += '<svg' + dp('regmark') + ' style="position:absolute;left:' + (SIDE - 4) + 'px;top:' + px(y - 12) +
       ';width:26px;height:26px" viewBox="-13 -13 26 26">' +
       B.regmark({ r: 7, sw: 1.4, color: T.regmark }) + '</svg>';
 
-    return { html: h, rule: y, bodyTop: y + 28, logoCx: cx, logoCy: cy };
+    return { html: h, rule: y, bodyTop: y + 28 * s, logoCx: cx, logoCy: cy };
   }
 
   /* ---------- one show ----------
@@ -169,11 +288,10 @@
      belongs to, with nothing between them; parking it beside the
      city gives both small items a partner and lets the date own
      its line, which is the point of leading with it. */
-  function eventRow(x, y, w, e, pitch) {
+  function eventRow(x, y, w, e, pitch, sz) {
     var wide = w >= WIDE, Z = wide ? SZ.wide : SZ.narrow;
-    var fd = cap(pitch * Z.date, CAP.date),
-        fn = cap(pitch * Z.name, CAP.name),
-        fc = cap(pitch * Z.city, CAP.city);
+    sz = sz || sizesFor(pitch, w, wide, [e]);
+    var fd = sz.fd, fn = sz.fn, fc = sz.fc;
     var row = function (top, left, right) {
       return '<div style="position:absolute;left:' + x + 'px;top:' + px(y + pitch * top) +
         ';width:' + w + 'px;display:flex;justify-content:space-between;' +
@@ -246,12 +364,18 @@
 
   /* A quiet line for a month with nothing in it. An empty month is
      information: it tells a collector not to wait. */
-  function emptyRow(y, pitch) {
-    return rule(SIDE, y, CW, T.rowRule, null, 'rowRule') +
-      '<div class="label"' + dp('city') + ' style="position:absolute;left:' + SIDE + 'px;top:' +
-      px(y + pitch * 0.30) + ';width:' + CW + 'px;font-size:' +
-      px(cap(pitch * 0.175, CAP.city)) + ';color:' + T.city +
-      ';letter-spacing:0.16em">GEEN BEURZEN DEZE MAAND</div>';
+  function emptyRow(y, pitch, x, w) {
+    x = x == null ? SIDE : x; w = w == null ? CW : w;
+    var fc = cap(pitch * 0.175, CAP.city);
+    var text = w >= WIDE ? 'GEEN BEURZEN DEZE MAAND' : 'GEEN BEURZEN';
+    /* the label is tracked at 0.16em, so it has to be measured like
+       any other string before it is allowed to run past the column */
+    var wAt100 = widthAt100(text, FACE.small);
+    if (wAt100 > 0) fc = Math.min(fc, w * 100 / wAt100);
+    return rule(x, y, w, T.rowRule, null, 'rowRule') +
+      '<div class="label"' + dp('city') + ' style="position:absolute;left:' + x + 'px;top:' +
+      px(y + pitch * 0.30) + ';width:' + w + 'px;font-size:' + px(fc) + ';color:' + T.city +
+      ';letter-spacing:0.16em">' + text + '</div>';
   }
 
   global.Card = {
@@ -259,6 +383,8 @@
     BAND_RATIO: BAND_RATIO, WIDE: WIDE, useTheme: useTheme,
     esc: esc, marker: marker, ed: ed, evf: evf, rule: rule,
     ground: ground, header: header, eventRow: eventRow, band: band,
-    bandHeight: bandHeight, footer: footer, qrBlock: qrBlock, emptyRow: emptyRow
+    bandHeight: bandHeight, footer: footer, qrBlock: qrBlock, emptyRow: emptyRow,
+    sizesFor: sizesFor, betterPlan: betterPlan,
+    headerScale: headerScale, headerDepth: headerDepth
   };
 })(window);
