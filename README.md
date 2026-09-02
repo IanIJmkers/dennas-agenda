@@ -30,19 +30,46 @@ volledige agenda als overzicht.
 
 ## Voor de klant — hoe het werkt
 
-**Tekst aanpassen** → klik op de kaart zelf. Koppen, plaatsnamen, de regel onderaan:
-alles waar je overheen gaat met de muis krijgt een streepje en is te typen.
+De kolom rechts heeft drie tabbladen. Er zit nooit iets meer dan één klik diep.
 
-**Beurzen toevoegen of wijzigen** → in de kolom rechts. Vul naam, plaats en datum in.
-De **weekdag en de volgorde komen uit de datum** — die hoef je niet zelf te typen en
-ze kunnen dus ook niet meer botsen met elkaar. Een einddatum vul je alleen in bij een
-beurs van twee dagen; dan wordt het vanzelf `26–27.09` en `ZA–ZO`.
+**BEURZEN** — de lijst. Elke beurs is een kaartje met een nummer, de weekdag en de
+datum bovenaan, en velden die zeggen wat erin hoort: *Naam van de beurs*, *Plaats*,
+*Datum*, en *T/m* (alleen invullen bij een beurs van twee dagen). De volgorde en de
+weekdag komen uit de datum — die typ je dus niet zelf en ze kunnen ook niet meer
+tegenstrijdig worden. Met ✕ verwijder je er één, onderaan voeg je er één toe.
+Klik een beurs op de kaart en hij opent hier.
 
-**Plaats nog niet bekend?** Laat `‹STAD›` staan. Dat drukt rood af en de kolom rechts
-blijft het melden, zodat er nooit een verzonnen plaatsnaam op de kaart komt.
+**KLEUREN** — elk onderdeel van de kaart heeft zijn eigen kleur: de achtergrond, het
+golfpatroon, de cirkel achter het logo, elke kop, elke lijn, de datum, de naam, de
+plaats, de weekdag, de voettekst en de QR. Je kunt een kleur kiezen met het blokje of
+de hexcode intypen. Met ↺ zet je er één terug op de huisstijl, onderaan alle 26 in
+één keer.
 
-**Klaar** → *PNG downloaden*. Dat bestand is precies 1080 × 1920 (of 1080 × 1350 op
-4:5) en kan zo op Instagram. *PDF / print* geeft dezelfde kaart als pdf.
+> Weet je niet welk onderdeel een regel is? **Ga er met de muis overheen** — dan
+> licht op de kaart precies op wat die kleur verft. "Balklijn" zegt niets tot je de
+> lijn ziet oplichten.
+
+**TEKST** — de vaste teksten (bovenregel, kop, slotregel, uitleg, Instagram-naam,
+regio) en de link achter de QR. Diezelfde teksten kun je ook gewoon op de kaart
+aanklikken en typen; wat je overheen gaat met de muis krijgt een streepje.
+
+### Wat er gecontroleerd wordt
+
+Onderaan elk tabblad staat **Controle**. Er wordt niets verboden — er wordt gemeten,
+en je krijgt het te zien zodra een keuze de kaart onleesbaar maakt:
+
+- **tekst tegen de achtergrond onder 4,5:1**, met de gemeten verhouding per onderdeel.
+  Dat is dezelfde eis die voor het drukwerk geldt.
+- **de QR** moet donker-op-licht blijven. Draai je hem om, dan scant hij niet meer;
+  dat is geen stijlkeuze maar een code die het niet doet.
+- **het logo** is een aangeleverd bestand in donkerblauwe inkt en wordt niet hertint.
+  Zet je de kaart donker, dan zegt de controle dat je daar een lichte versie van het
+  logo voor nodig hebt.
+- **plaats nog niet bekend?** Laat `‹STAD›` staan. Dat drukt rood af en blijft gemeld,
+  zodat er nooit een verzonnen plaatsnaam op de kaart komt.
+
+Kleuren en teksten gelden voor **beide kaarten** en gaan mee in *Opslaan* en
+*Deel link*.
 
 ### Waar je werk blijft staan
 
@@ -87,6 +114,11 @@ getal met een schaalfactor erover. Daardoor kan een regel nooit groter worden da
 ruimte die hij heeft — en betekent "grotere letters" hetzelfde als "minder beurzen op
 één kaart", wat ook echt de afweging is.
 
+Geen enkele kleur staat hard in `card.js`. `Card.useTheme(state)` wordt één keer aan
+het begin van een tekening aangeroepen; daarna leest alles uit `T`. Een nieuw
+kleurbaar onderdeel toevoegen is dus: een sleutel in `store.js` erbij, `T.<sleutel>`
+gebruiken waar je hem tekent, en een regel in `GROUPS` in `panel.js`.
+
 ### Deployen naar Vercel
 
 Twee manieren, allebei zonder build:
@@ -111,4 +143,9 @@ Twee manieren, allebei zonder build:
 - Een weekend dat over de maandgrens loopt (31.10–01.11) valt niet uit de
   2-maandenkaart.
 - Niets uit het gereedschap komt in de export, ook niet als de muis op een veld staat.
+- Kleuren: alle 26 onderdelen komen door in beide kaarten en in de export; *Herstel
+  huisstijlkleuren* levert exact de originele waarden terug; en een omgekeerde QR,
+  te lage tekstcontrast en een donkere achtergrond onder het logo worden alle drie
+  gemeld met de gemeten verhouding erbij. Een donker thema is uitgeprobeerd en de QR
+  daaruit is gedecodeerd.
 # dennas-agenda

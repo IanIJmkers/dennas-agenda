@@ -82,6 +82,7 @@
 
   function build() {
     var st = S.load(), F = K.formatOf(st);
+    K.useTheme(st);
     var rows = S.sorted(st.events);
     var head = K.header(st, F, {
       eyebrow: st.meta.eyebrow, eyebrowPath: 'meta.eyebrow',

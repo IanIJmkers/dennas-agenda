@@ -44,16 +44,9 @@
 <script src="js/panel.js"></script>
 <script src="js/agenda.js"></script>
 <script>
-  AgendaPanel.init({
-    mount: '#panel',
-    extra: function (mount, st) {
-      var el = Editor.el;
-      mount.appendChild(el('h2', { text: 'Zo werkt het' }));
-      mount.appendChild(el('p', { class: 'hint', text:
-        'Klik op de kaart om koppen, plaatsnamen en de voettekst te typen. ' +
-        'Beurzen zelf voeg je hieronder toe. Klaar? Download de PNG.' }));
-    }
-  });
+  /* No `extra` here: the Beurzen section explains itself, and a
+     second hint above it just pushed the list further down. */
+  AgendaPanel.init({ mount: '#panel' });
   Agenda.init();
   Editor.wireBar({ filename: 'dennas-agenda.png', onData: function () { Agenda.render(); } });
 </script>

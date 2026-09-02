@@ -32,6 +32,7 @@
 
   function build() {
     var st = S.load(), F = K.formatOf(st);
+    K.useTheme(st);
     var months = monthsOf(st.snapshot.from);
     var keys = months.map(function (x) { return x.key; });
     var rows = S.sorted(st.events).filter(function (e) {
@@ -66,11 +67,7 @@
         { label: S.MONTHS[b.month.m], sub: String(b.month.y), tick: bi === 0 }, pitch);
       y += K.bandHeight(pitch);
       if (!b.events.length) {
-        html += K.rule(K.SIDE, y, K.CW) +
-          '<div class="label" style="position:absolute;left:' + K.SIDE + 'px;top:' +
-          (y + pitch * 0.30).toFixed(1) + 'px;width:' + K.CW + 'px;font-size:' +
-          Math.min(pitch * 0.175, 27).toFixed(1) + 'px;color:' + global.Brand.C.steelOnPaper +
-          ';letter-spacing:0.16em">GEEN BEURZEN DEZE MAAND</div>';
+        html += K.emptyRow(y, pitch);
         y += pitch;
         return;
       }

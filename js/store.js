@@ -44,6 +44,32 @@
       format: 'story'
     },
     seasons: { '2026': 'NAJAAR', '2027': 'VOORJAAR' },
+
+    /* Every element that carries a colour, one entry each. The
+       defaults are the six brand values and the two derived steels —
+       nothing here is a new hue, it is the print palette mapped onto
+       the parts of the card.
+
+       The lockup is not in this list and cannot be: it is the supplied
+       master as a PNG, and §9 of the brief forbids recolouring it.
+
+       These can be set to anything. What the panel does instead of
+       forbidding is measure — every text colour against the field it
+       sits on, and the QR against its own ground — and say plainly
+       when a choice has broken the 4.5:1 the rest of the system holds
+       itself to. */
+    theme: {
+      bg:        '#F4F1EA',   pattern:   '#1B3A5C',   halo:      '#1B3A5C',
+      eyebrow:   '#40587A',   heading:   '#1B3A5C',   span:      '#40587A',
+      headRule:  '#C3A063',   regmark:   '#C3A063',
+      bandRule:  '#C3A063',   bandYear:  '#1B3A5C',   bandLabel: '#40587A',
+      bandTick:  '#B5372B',   rowRule:   '#C3A063',
+      date:      '#1B3A5C',   name:      '#1B3A5C',   city:      '#40587A',
+      day:       '#40587A',   marker:    '#B5372B',
+      footRule:  '#C3A063',   closing:   '#1B3A5C',   note:      '#40587A',
+      handle:    '#1B3A5C',   region:    '#40587A',
+      qrFrame:   '#C3A063',   qrDark:    '#1B3A5C',   qrLight:   '#F4F1EA'
+    },
     snapshot: { from: '2026-08', eyebrow: 'DE KOMENDE TWEE MAANDEN', heading: 'AGENDA' },
     events: [
       { name: 'CON-NXT',             city: 'AMSTERDAM',  start: '2026-08-14', end: '' },
@@ -125,6 +151,7 @@
       if (s.meta) for (var k in s.meta) if (k in out.meta) out.meta[k] = s.meta[k];
       if (s.snapshot) for (var j in s.snapshot) if (j in out.snapshot) out.snapshot[j] = s.snapshot[j];
       if (s.seasons) out.seasons = s.seasons;
+      if (s.theme) for (var t in out.theme) if (s.theme[t]) out.theme[t] = s.theme[t];
       if (Array.isArray(s.events)) {
         out.events = s.events.map(function (e) {
           return {

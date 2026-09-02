@@ -159,3 +159,97 @@ body.preview .chrome{display:none!important}
   .page{transform:none!important;box-shadow:none!important;margin:0}
   .page [data-edit]{box-shadow:none!important;background:transparent!important}
 }
+
+/* ---------- panel sections ----------
+   Three tabs rather than one long scroll: the colour controls used
+   to sit below eighteen show cards, which is the same as not being
+   there at all. */
+.pnav{display:flex;gap:4px;margin:0 0 16px;border-bottom:1px solid rgba(27,58,92,.16);padding-bottom:0}
+.pnav-b{
+  flex:1;padding:9px 4px 10px;border:0;background:transparent;cursor:pointer;
+  font-weight:600;text-transform:uppercase;letter-spacing:.12em;font-size:10px;
+  color:var(--steel-on-paper);border-bottom:2px solid transparent;margin-bottom:-1px;
+}
+.pnav-b:hover{color:var(--ink-navy)}
+.pnav-b.on{color:var(--ink-navy);border-bottom-color:var(--gold)}
+
+.panel h3{
+  font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.14em;
+  color:var(--steel-on-paper);margin:20px 0 8px;padding-bottom:5px;
+  border-bottom:1px solid rgba(27,58,92,.12);
+}
+.panel h3:first-child{margin-top:4px}
+.btn.wide{width:100%;margin-top:8px}
+.btn.ghost{border-color:rgba(27,58,92,.28);color:var(--ink-navy)}
+.btn.ghost:hover{background:rgba(27,58,92,.06)}
+
+/* ---------- labelled fields ----------
+   Four bare inputs in a box is a puzzle; every one now says what it
+   holds, and the optional ones say that too. */
+.f{display:block;margin-bottom:9px}
+.f-l{
+  display:block;font-size:10px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.13em;color:var(--steel-on-paper);margin-bottom:4px;
+}
+.f-n{display:block;font-size:11px;color:var(--steel-on-paper);margin-top:3px;opacity:.85}
+.f input{
+  width:100%;padding:8px 9px;border:1px solid rgba(27,58,92,.22);
+  background:#fff;border-radius:2px;
+}
+.f input:focus{outline:2px solid var(--gold);outline-offset:-1px;border-color:var(--gold)}
+.f input.name{font-weight:600;letter-spacing:.02em;text-transform:uppercase}
+.pair{display:flex;gap:8px}
+.pair .f{flex:1;min-width:0}
+
+/* ---------- a show ---------- */
+.show-h{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.show-h .num{
+  flex:none;width:20px;height:20px;border-radius:50%;background:var(--ink-navy);
+  color:var(--paper);font-size:10px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+}
+.show-h .stamp{
+  flex:1;min-width:0;font-size:10px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--steel-on-paper);
+}
+.show-h .stamp.marker{color:var(--seal-red)}
+.show .kill{
+  flex:none;width:22px;height:22px;line-height:1;cursor:pointer;
+  border:1px solid rgba(181,55,43,.35);background:transparent;color:var(--seal-red);
+  border-radius:2px;font-size:11px;
+}
+.show .kill:hover{background:var(--seal-red);color:#fff;border-color:var(--seal-red)}
+
+/* ---------- colour rows ---------- */
+.crow{display:flex;align-items:center;gap:7px;padding:3px 0;border-radius:2px}
+.crow:hover{background:rgba(195,160,99,.12)}
+.crow > span{flex:1;min-width:0;font-size:12px}
+.crow .hex{
+  width:76px;flex:none;padding:5px 6px;font-size:11px;letter-spacing:.04em;
+  border:1px solid rgba(27,58,92,.18);border-radius:2px;background:#fff;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;
+}
+.crow .hex:focus{outline:2px solid var(--gold);outline-offset:-1px}
+.crow input[type="color"]{
+  width:38px;height:26px;flex:none;padding:0;cursor:pointer;background:#fff;
+  border:1px solid rgba(27,58,92,.22);border-radius:2px;
+}
+.crow input[type="color"]::-webkit-color-swatch-wrapper{padding:2px}
+.crow input[type="color"]::-webkit-color-swatch{border:0;border-radius:1px}
+.crow .undo{
+  width:24px;height:24px;flex:none;cursor:pointer;line-height:1;
+  border:1px solid rgba(27,58,92,.22);background:transparent;border-radius:2px;
+  color:var(--steel-on-paper);
+}
+.crow .undo:hover:not(:disabled){border-color:var(--gold);color:var(--ink-navy)}
+.crow .undo:disabled{opacity:.25;cursor:default}
+
+/* ---------- hover-to-locate ----------
+   Editor furniture: the outline says which element a swatch paints.
+   It is stripped from the export along with every other affordance. */
+.page [data-part].spot{
+  outline:2px solid var(--seal-red);outline-offset:3px;
+  border-radius:1px;
+}
+body.exporting .page [data-part]{outline:none!important}
+body.preview .page [data-part]{outline:none!important}
