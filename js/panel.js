@@ -126,10 +126,15 @@
         open.length + ' plaats(en) staan nog als ‹STAD› en drukken rood af: ' +
         open.map(function (e) { return e.name; }).join(', ') + '.', false]);
     }
-    if (layout && layout.pitch < 62 && layout.mode === 'two') {
-      out.push(['Vol',
-        'De agenda zit vol. Nog meer beurzen worden kleiner gezet dan prettig leest — ' +
-        'overweeg de 2-maanden versie voor de korte termijn.', false]);
+    /* Tied to the size the show names actually come out at rather
+       than to a row count: 0.275 of the row height, and under about
+       26px it stops carrying at arm's length on a phone — which is
+       the whole reason the card was rebuilt. */
+    if (layout && layout.mode === 'two' && layout.pitch < 95) {
+      out.push(['Klein gezet',
+        'Met dit aantal beurzen wordt de naam ' + Math.round(layout.pitch * 0.275) +
+        'px — van een afstandje lastig te lezen. Staat de kaart op 4:5? ' +
+        '9:16 geeft meer ruimte. Anders is de 2-maandenkaart de leesbare.', false]);
     }
     var n = global.Brand.qrModuleCount(st.meta.qrUrl);
     out.push(['QR: ' + n + ' modules',

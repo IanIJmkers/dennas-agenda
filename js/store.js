@@ -37,7 +37,11 @@
       note: 'Scan de code voor alle kanalen, drops en restocks.',
       handle: '@dennastrading',
       region: 'NEDERLAND · BELGIË',
-      qrUrl: 'https://linktr.ee/dennastrading'
+      qrUrl: 'https://linktr.ee/dennastrading',
+      /* 'story' = 1080x1920, 'post' = 1080x1350. Story is the
+         default: it is the only one with room for a centred lockup
+         and dates that carry at arm's length on a phone. */
+      format: 'story'
     },
     seasons: { '2026': 'NAJAAR', '2027': 'VOORJAAR' },
     snapshot: { from: '2026-08', eyebrow: 'DE KOMENDE TWEE MAANDEN', heading: 'AGENDA' },

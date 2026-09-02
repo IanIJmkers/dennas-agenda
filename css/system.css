@@ -50,9 +50,11 @@
    Fixed 1080x1350 (Instagram 4:5). It is never resized — the page
    scales it with a transform so that what is exported is always
    the same pixel grid the layout was authored on. */
+/* 1080 wide always; the height is the chosen format and is set by
+   Editor.setSize, which also rewrites the print page box. */
 .page{
   position:relative;overflow:hidden;background:var(--paper);
-  width:1080px;height:1350px;
+  width:1080px;height:1920px;
   transform-origin:top left;
 }
 .page *{

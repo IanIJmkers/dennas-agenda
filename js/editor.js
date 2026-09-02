@@ -21,7 +21,19 @@
 (function (global) {
   'use strict';
 
-  var PAGE_W = 1080, PAGE_H = 1350;
+  /* The artboard is 1080 wide always; its height is the chosen
+     format. Both are set from one place so the on-screen fit, the
+     PNG writer and the print page box can never disagree. */
+  var PAGE_W = 1080, PAGE_H = 1920;
+
+  function setSize(w, h) {
+    PAGE_W = w; PAGE_H = h;
+    var page = document.querySelector('.page');
+    if (page) { page.style.width = w + 'px'; page.style.height = h + 'px'; }
+    var st = document.getElementById('pagesize') ||
+             document.head.appendChild(Object.assign(document.createElement('style'), { id: 'pagesize' }));
+    st.textContent = '@media print{@page{size:' + w + 'px ' + h + 'px;margin:0}}';
+  }
 
   /* ---------- scale the artboard to the window ---------- */
   function fitStage() {
@@ -61,6 +73,29 @@
       n.addEventListener('blur', function () {
         if (onStructural) onStructural();
       });
+    });
+  }
+
+  /* A show's name and city are typed onto the artboard itself. They
+     are fields of a show rather than store paths, so they bind by
+     id — and they persist without redrawing, because the caret is
+     inside the node that a redraw would replace. */
+  function bindEventFields(root, rerender) {
+    Array.prototype.forEach.call(root.querySelectorAll('[data-ev]'), function (n) {
+      n.setAttribute('contenteditable', 'plaintext-only');
+      n.setAttribute('spellcheck', 'false');
+      var id = n.getAttribute('data-ev'), f = n.getAttribute('data-field');
+      n.addEventListener('input', function () {
+        var st = Store.load();
+        for (var i = 0; i < st.events.length; i++) {
+          if (st.events[i]._id === id) { st.events[i][f] = n.textContent.trim(); break; }
+        }
+        Store.persist();
+      });
+      n.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter') { ev.preventDefault(); n.blur(); }
+      });
+      n.addEventListener('blur', function () { rerender(); });
     });
   }
 
@@ -158,6 +193,14 @@
         Store.reset(); opts.onData();
       }
     };
+    Array.prototype.forEach.call(document.querySelectorAll('[data-format]'), function (n) {
+      n.onclick = function () {
+        Store.setPath('meta.format', n.getAttribute('data-format'), true);
+        opts.onData();
+        markFormat();
+      };
+    });
+    markFormat();
     if ((b = q('#preview'))) b.onclick = function () {
       var on = document.body.classList.toggle('preview');
       b.textContent = on ? 'Bewerken' : 'Voorbeeld';
@@ -166,8 +209,15 @@
     global.addEventListener('resize', fitStage);
   }
 
+  function markFormat() {
+    var cur = Store.load().meta.format;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-format]'), function (n) {
+      n.classList.toggle('on', n.getAttribute('data-format') === cur);
+    });
+  }
+
   global.Editor = {
-    PAGE_W: PAGE_W, PAGE_H: PAGE_H,
+    setSize: setSize, bindEventFields: bindEventFields,
     fitStage: fitStage, bindEditables: bindEditables, exportPNG: exportPNG,
     download: download, importJSON: importJSON, copyShareLink: copyShareLink,
     el: el, wireBar: wireBar
