@@ -38,8 +38,6 @@ button,input,select,textarea{font:inherit;color:inherit}
 .seg .btn{border:0;border-radius:0;padding:7px 11px}
 .seg .btn + .btn{border-left:1px solid rgba(244,241,234,.28)}
 .seg .btn.on{background:var(--gold);color:var(--ink-navy);font-weight:600}
-.seg .pagelab{cursor:default;min-width:64px;text-align:center;font-variant-numeric:tabular-nums}
-.seg .pagelab:hover{background:transparent}
 .bar .spacer{flex:1}
 .tab{
   padding:7px 13px;border-radius:2px;text-decoration:none;white-space:nowrap;

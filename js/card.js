@@ -1,38 +1,38 @@
 /* ============================================================
    THE CARD — shared furniture for both artboards
 
-   WHY THE LIST WAS REBUILT
-   The client's live card carried 23 shows in two columns of
-   three-line rows: date / name / city + weekday. Measured on a
-   phone that put the name at 8pt and the city at 4.6pt. No
-   arrangement of one 1080×1920 field fixes that — the depth simply
-   is not there — so the list changed in three ways at once:
+   Rewritten around two things the client asked for after seeing a
+   competitor's story: the mark should be the focal point, and the
+   dates should carry at arm's length on a phone.
 
-   · ONE LINE PER SHOW when the list is dense. Date, weekday, name,
-     city on a single baseline in aligned columns. There is no
-     "small line" any more: the smallest thing on the row is 0.76
-     of the name, not 0.56.
-   · MONTHS, NOT YEARS, as the bands. A month band is what a
-     collector scans for; a year band was a typographic gesture.
-   · PAGES. When even one-line rows would set the name under 30px,
-     the list is split across cards — a carousel, which is how
-     every organiser on Instagram already posts an agenda. Two
-     lines per show stay for a quiet card, where they read larger.
+   WHY THE FORMAT CHANGED
+   Both cannot happen at 4:5. A centred lockup large enough to be
+   the focal point costs ~490px of depth, and fifteen shows in what
+   is left of a 1350px card forces the type back down to where it
+   started. At 9:16 there are 570 more pixels to spend, which is
+   exactly what the reference is — a story. So story is the
+   default, and 4:5 stays available for the feed, where the layout
+   simply gets tighter and says so.
 
-   WHY THE SMALL TEXT GREW
-   The eyebrow, the period line, the band year and the footer note
-   were 21–24px: 7–8pt on a phone. They are 30px now, and the band
-   year is a third of the row rather than a sixth.
+   WHY TYPE IS A FRACTION OF THE ROW
+   Every size here is a fraction of the row pitch rather than a
+   fixed number scaled by a factor. It means the row can never
+   outgrow its own height — the bug that used to let hairlines cut
+   through the city line — and it means "bigger type" and "fewer
+   shows" are the same lever, which is the honest relationship.
 
-   WHY TYPE IS A FRACTION OF THE ROW, AND MEASURED
-   Every size is a fraction of the row pitch and then measured
-   against the real strings on a canvas, so a row can never outgrow
-   its height and a name can never run past its column.
+   WHY THE DATE LEADS
+   On the old card the show name led and the date was flushed
+   right. Nobody reads an agenda that way: they scan for when, then
+   read what. The date now opens every row, set in Anton at the
+   largest size in the list.
 
    WHY NO COLOUR IS HARD-CODED HERE
-   Every element reads its colour from the theme in the store, set
-   once per draw by `useTheme`. The lockup is the one thing that
-   cannot be themed: it is the supplied master as a PNG.
+   Every element reads its colour from the theme in the store, so
+   the client can set any of them. `useTheme` is called once at the
+   top of a build and the rest of the file draws from `T`. The one
+   thing that cannot be themed is the lockup: it is the supplied
+   master as a PNG, and the brief forbids recolouring it.
    ============================================================ */
 (function (global) {
   'use strict';
@@ -41,59 +41,52 @@
   var W = 1080, SIDE = 72, CW = W - SIDE * 2;
 
   var FORMATS = {
-    story: { key: 'story', h: 1920, logoW: 280, top: 70, head: 130, small: 30,
-             footRule: 1640, closing: 56, note: 28, sign: 26, qr: 180,
-             pitchMax: 176, minName: 30, wideMin: 40 },
-    post:  { key: 'post',  h: 1350, logoW: 200, top: 52, head: 92,  small: 24,
-             footRule: 1130, closing: 44, note: 23, sign: 22, qr: 152,
-             pitchMax: 150, minName: 24, wideMin: 32 }
+    story: { key: 'story', h: 1920, logoW: 280, top: 70, head: 130, small: 24,
+             footRule: 1640, closing: 56, note: 24, sign: 22, qr: 180,
+             pitchMax1: 176, pitchMax2: 176 },
+    post:  { key: 'post',  h: 1350, logoW: 200, top: 52, head: 92,  small: 20,
+             footRule: 1130, closing: 44, note: 21, sign: 20, qr: 152,
+             pitchMax1: 150, pitchMax2: 150 }
   };
   function formatOf(st) { return FORMATS[st.meta.format] || FORMATS.story; }
 
+  /* The live palette for the current draw. Set by useTheme so no
+     drawing function has to be handed a colour it does not choose. */
   var T = S.DEFAULTS ? JSON.parse(JSON.stringify(S.DEFAULTS.theme)) : {};
   function useTheme(st) { T = st.theme; return T; }
 
-  /* ---------- type, as fractions of the row ----------
-     'wide' is two lines — date | weekday over name | city — and is
-     used while it still sets the name at F.wideMin or better.
-     'line' is one line and takes over below that. */
-  var SZ = {
-    wide: { date: 0.40, name: 0.29, city: 0.175, dateTop: 0.13, nameTop: 0.56 },
-    /* one line: the name's share of the row height, and the other
-       three cells as ratios OF THE NAME — because on one line the
-       four cells compete for width, and they have to shrink together
-       or the name is what loses. */
-    line: { name: 0.56, dateOf: 1.15, cityOf: 0.76 },
-    bandYear: 0.55, bandSub: 0.34
-  };
-  var CAP = { date: 92, name: 66, city: 34, lineDate: 72, lineName: 60, lineCity: 40,
-              bandYear: 64, bandSub: 34 };
-  var BAND_RATIO = 0.74;         /* a band, in row-heights */
-  var GAP = 22;
+  /* Type and the baselines it sits on, both as fractions of the row.
+     Two sets, because the two measures hold different amounts.
 
-  function px(n) { return n.toFixed(1) + 'px'; }
-  function cap(v, m) { return Math.min(v, m); }
-  function esc(s) {
-    return String(s == null ? '' : s).replace(/[&<>]/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c];
-    });
-  }
-  function marker(v) {
-    return /^‹/.test(String(v))
-      ? '<span style="color:' + T.marker + '">' + esc(v) + '</span>' : esc(v);
-  }
-  function ed(p) { return ' data-edit="' + p + '"'; }
-  function dp(part) { return part ? ' data-part="' + part + '"' : ''; }
-  function evf(e, f) { return ' data-ev="' + e._id + '" data-field="' + f + '"'; }
-  function rule(x, y, w, color, h, part) {
-    return '<div' + dp(part) + ' style="position:absolute;left:' + x + 'px;top:' + y.toFixed(1) +
-      'px;width:' + w + 'px;height:' + (h || 1.5) + 'px;background:' +
-      (color || T.rowRule) + '"></div>';
-  }
+     The narrow numbers are the ones that were got wrong first: at
+     0.40/0.29/0.175 the three lines came to 0.83 of the row and left
+     2px between the city and the next hairline, so the list read as
+     one grey mass instead of as rows. Dropping to 0.355/0.275/0.155
+     brings the glyphs to 0.75 and leaves a quarter of the row as
+     air — enough for the block to group and the rule to separate. */
+  var SZ = {
+    wide:   { date: 0.40,  name: 0.29,  city: 0.175,
+              dateTop: 0.13, nameTop: 0.56 },
+    narrow: { date: 0.355, name: 0.275, city: 0.155,
+              dateTop: 0.07, nameTop: 0.447, cityTop: 0.762 },
+    bandYear: 0.42, bandSub: 0.165
+  };
+  /* Ceilings, not targets. They used to be the thing that actually
+     limited the type, which meant the type stopped growing before it
+     reached the edge of its column. Now `sizesFor` measures the real
+     strings and these only stop something absurd. */
+  var CAP = { date: 92, name: 66, city: 34, bandYear: 92 };
 
   /* ---------- measuring ----------
-     Width scales linearly with size, so one measurement at 100px
-     gives the exact largest size that fits any width. */
+     The sizes were guesses: a fraction of the row, clamped by a
+     constant chosen for the longest name anyone had typed so far.
+     That is wrong in both directions — it wastes room on a list of
+     short names and overflows on a long one.
+
+     So the strings get measured. Text width scales linearly with
+     font size, so one measurement at 100px gives the exact largest
+     size that fits any width, and the smallest of those across the
+     list is the size the column can actually hold. */
   var FACE = {
     date:  ['Anton', 400, -0.015],
     name:  ['Archivo Narrow', 600, 0.03],
@@ -108,6 +101,8 @@
     if (!text) return 0;
     var c2 = mctx(), extra = 0;
     c2.font = face[1] + ' 100px "' + face[0] + '", sans-serif';
+    /* Chromium applies canvas letterSpacing; elsewhere approximate it,
+       which is what the tracked labels need to be measured honestly. */
     if ('letterSpacing' in c2) c2.letterSpacing = face[2] + 'em';
     else extra = face[2] * 100 * String(text).length;
     var w = c2.measureText(String(text)).width + extra;
@@ -119,49 +114,95 @@
     for (var i = 0; i < rows.length; i++) m = Math.max(m, widthAt100(pick(rows[i]), face));
     return m;
   }
-  function fitTo(text, face, room, ceiling) {
-    var w = widthAt100(text, face);
-    return w > 0 ? Math.min(ceiling, room * 100 / w) : ceiling;
-  }
 
-  /* The sizes a row of this height gets, given the strings that
-     have to fit in the width. Returns the cell widths too, so the
-     one-line row can align its columns across the whole list. */
-  function sizesFor(pitch, w, shape, rows) {
-    if (!rows.length) return { fd: 10, fn: 10, fc: 10, dateCell: 0, dayCell: 0 };
+  /* The three type sizes for a row of this height in a column of this
+     width, given the actual strings that have to fit in it.
+
+       wide    line 1  date | weekday      line 2  name | city
+       narrow  line 1  date                line 2  name
+                                           line 3  city | weekday
+
+     The weekday and city are sized off the pitch first because they
+     are the least important thing on the card; the date and the name
+     then take whatever width is left. */
+  function sizesFor(pitch, colW, wide, rows) {
+    var Z = wide ? SZ.wide : SZ.narrow, GAP = 18;
+    if (!rows.length) return { fd: pitch * Z.date, fn: pitch * Z.name, fc: pitch * Z.city };
+
     var dateW = widest(rows, function (e) { return S.dateLabel(e); }, FACE.date);
     var nameW = widest(rows, function (e) { return e.name; }, FACE.name);
     var cityW = widest(rows, function (e) { return e.city; }, FACE.small);
     var dayW  = widest(rows, function (e) { return S.dayLabel(e); }, FACE.small);
 
-    if (shape === 'wide') {
-      var Z = SZ.wide;
-      var fc = cap(pitch * Z.city, CAP.city);
-      var fd = cap(pitch * Z.date, CAP.date);
-      var fn = cap(pitch * Z.name, CAP.name);
-      if (dateW > 0) fd = Math.min(fd, (w - GAP - dayW * fc / 100) * 100 / dateW);
-      if (nameW > 0) fn = Math.min(fn, (w - GAP - cityW * fc / 100) * 100 / nameW);
-      return { fd: Math.max(fd, 6), fn: Math.max(fn, 6), fc: Math.max(fc, 6) };
+    var fc = Math.min(pitch * Z.city, CAP.city);
+    /* narrow puts the city and the weekday on one line together */
+    if (!wide && cityW + dayW > 0) {
+      fc = Math.min(fc, (colW - GAP) * 100 / (cityW + dayW));
     }
+    var dateRoom = wide ? colW - GAP - dayW * fc / 100 : colW;
+    var nameRoom = wide ? colW - GAP - cityW * fc / 100 : colW;
 
-    /* one line: [date][day][name ........][city]
-       The height allows name = 0.56 × pitch. The width allows what
-       is left when the four widest strings, at their linked sizes,
-       have to sit on one line with three gaps between them. Both
-       are solved for the name and the smaller wins; the other three
-       cells then follow it at fixed ratios, so the smallest thing on
-       the row is always 0.76 of the name — there is no small line. */
-    var L = SZ.line;
-    var perName = dateW * L.dateOf + dayW * L.cityOf + nameW + cityW * L.cityOf;   /* width at name = 100 */
-    var byHeight = pitch * L.name;
-    var byWidth = perName > 0 ? (w - GAP * 3) * 100 / perName : byHeight;
-    var ln = cap(Math.min(byHeight, byWidth), CAP.lineName);
-    var ld = cap(ln * L.dateOf, CAP.lineDate), lc = cap(ln * L.cityOf, CAP.lineCity);
-    return { fd: Math.max(ld, 6), fn: Math.max(ln, 6), fc: Math.max(lc, 6),
-             dateCell: dateW * ld / 100, dayCell: dayW * lc / 100 };
+    var fd = Math.min(pitch * Z.date, CAP.date);
+    if (dateW > 0) fd = Math.min(fd, dateRoom * 100 / dateW);
+    var fn = Math.min(pitch * Z.name, CAP.name);
+    if (nameW > 0) fn = Math.min(fn, nameRoom * 100 / nameW);
+
+    return { fd: Math.max(fd, 6), fn: Math.max(fn, 6), fc: Math.max(fc, 6) };
   }
 
-  /* ---------- planes 1 and 2 ---------- */
+  /* Given the depth available, how big does each layout actually set
+     the show name? That — not a row count — decides one column or
+     two. Ten shows over two months is the case that proves it: in one
+     column they set at 24px, in two at 36px, because halving the rows
+     per column more than pays for halving the width. */
+  function betterPlan(a, b) {
+    if (!b) return a;
+    if (!a) return b;
+    /* Splitting has to earn it. A quiet two months came out 2% larger
+       in two columns, which bought nothing and cost a half-empty
+       right-hand column; a weekly cadence comes out 60% larger, which
+       is the case worth changing shape for. 8% is the line. */
+    return b.sizes.fn > a.sizes.fn * 1.08 ? b : a;
+  }
+  var BAND_RATIO = 0.64;
+  /* A column narrower than this cannot hold a date and a name side
+     by side at these sizes, so the row stacks to three lines. */
+  var WIDE = 700;
+
+  function px(n) { return n.toFixed(1) + 'px'; }
+  function cap(v, m) { return Math.min(v, m); }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c];
+    });
+  }
+  function marker(v) {
+    return /^‹/.test(String(v))
+      ? '<span style="color:' + T.marker + '">' + esc(v) + '</span>' : esc(v);
+  }
+  function ed(p) { return ' data-edit="' + p + '"'; }
+  /* Names the theme key an element is painted with, so hovering a
+     swatch in the panel can outline the thing it changes. Editor
+     furniture only — the export strips the outline, not the tag. */
+  function dp(part) { return part ? ' data-part="' + part + '"' : ''; }
+  function evf(e, f) { return ' data-ev="' + e._id + '" data-field="' + f + '"'; }
+  function rule(x, y, w, color, h, part) {
+    return '<div' + dp(part) + ' style="position:absolute;left:' + x + 'px;top:' + y.toFixed(1) +
+      'px;width:' + w + 'px;height:' + (h || 1.5) + 'px;background:' +
+      (color || T.rowRule) + '"></div>';
+  }
+
+  /* ---------- planes 1 and 2 ----------
+     The gesture is centred on the lockup rather than thrown into the
+     top-right corner. The mark is itself an enso, so a large faint
+     one behind it reads as a halo around the focal point — the same
+     move the story-sale artboard makes in the print set — instead of
+     as an unrelated smudge beside it. Sized to the lockup: at 840px
+     it swept through the headline and read as a ring drawn over the
+     type. At 660 it closes just outside the mark, and the brush gap
+     is rotated to the foot of the circle so the stroke opens
+     downward and the headline sits in the opening. */
   function ground(F, logoCx, logoCy) {
     var D = 660;
     return '<div class="plane-1"' + dp('bg') + ' style="background:' + T.bg + '">' +
@@ -176,9 +217,26 @@
   }
 
   /* ---------- the header ----------
-     Full size is 0.88 of these numbers; it yields further, down to
-     0.72, only when the list cannot otherwise breathe. Depth is
-     linear in the scale, so it is solved for rather than searched. */
+     Centred: lockup, then the line that says what this is, then the
+     word, then the span it covers. Returns where the body starts so
+     no caller has to know the header's internal spacing. Every gap
+     here is paid for fifteen times over in the list below it. */
+  /* The header at full size costs 673px — 35% of a story. That is the
+     right price for a card with five shows on it and the wrong one
+     for a card with twenty-six, where the list is what the card is
+     for. So it yields, but only when the list cannot otherwise
+     breathe: `headerScale` stays at 1 until the row pitch would fall
+     below what still reads, then gives depth back until it does, or
+     until the lockup is at 72% — whichever comes first.
+
+     Every measurement in the header scales together, so its depth is
+     exactly linear in the scale and the right one is solved for
+     rather than searched. */
+  /* HEAD_MAX is the header's full size, and it is 0.88 rather than 1:
+     even on a quiet card the lockup and the word AGENDA were taking
+     more depth than the list they introduce. Everything in the header
+     scales together, so this is a proportional trim rather than a set
+     of nudged numbers, and the lockup stays the focal point. */
   var COMFORT_PITCH = 96, HEAD_MAX = 0.88, HEAD_MIN = 0.72;
 
   function headerDepth(F, s) {
@@ -223,152 +281,58 @@
     return { html: h, rule: y, bodyTop: y + 28 * s, logoCx: cx, logoCy: cy };
   }
 
-  /* ---------- rows ---------- */
-  function wideRow(x, y, w, e, pitch, sz) {
-    var Z = SZ.wide;
+  /* ---------- one show ----------
+     Wide measure: the date opens the row and the weekday closes it;
+     name and city sit on the line below, left and right.
+
+     Narrow measure: the date takes a line to itself and the two
+     quiet items pair up underneath. Flushing the weekday right of
+     the date instead leaves it stranded 300px from the number it
+     belongs to, with nothing between them; parking it beside the
+     city gives both small items a partner and lets the date own
+     its line, which is the point of leading with it. */
+  function eventRow(x, y, w, e, pitch, sz) {
+    var wide = w >= WIDE, Z = wide ? SZ.wide : SZ.narrow;
+    sz = sz || sizesFor(pitch, w, wide, [e]);
+    var fd = sz.fd, fn = sz.fn, fc = sz.fc;
     var row = function (top, left, right) {
       return '<div style="position:absolute;left:' + x + 'px;top:' + px(y + pitch * top) +
         ';width:' + w + 'px;display:flex;justify-content:space-between;' +
-        'align-items:baseline;gap:' + GAP + 'px">' + left + (right || '') + '</div>';
+        'align-items:baseline;gap:18px">' + left + (right || '') + '</div>';
     };
-    var date = '<span class="display"' + dp('date') + ' style="font-size:' + px(sz.fd) + ';color:' + T.date +
+    var date = '<span class="display"' + dp('date') + ' style="font-size:' + px(fd) + ';color:' + T.date +
       ';white-space:nowrap">' + esc(S.dateLabel(e)) + '</span>';
-    var day = '<span class="label"' + dp('day') + ' style="font-size:' + px(sz.fc) + ';color:' + T.day +
+    var day = '<span class="label"' + dp('day') + ' style="font-size:' + px(fc) + ';color:' + T.day +
       ';letter-spacing:0.16em;white-space:nowrap;flex:none">' + esc(S.dayLabel(e)) + '</span>';
-    var name = '<span class="label-narrow"' + evf(e, 'name') + dp('name') + ' style="font-size:' + px(sz.fn) +
-      ';color:' + T.name + ';letter-spacing:0.03em;white-space:nowrap;overflow:hidden">' + esc(e.name) + '</span>';
-    var city = '<span class="label"' + evf(e, 'city') + dp('city') + ' style="font-size:' + px(sz.fc) +
-      ';color:' + T.city + ';letter-spacing:0.16em;white-space:nowrap;flex:none">' + marker(e.city) + '</span>';
-    return rule(x, y, w, T.rowRule, null, 'rowRule') +
-      row(Z.dateTop, date, day) + row(Z.nameTop, name, city);
+    var name = '<span class="label-narrow"' + evf(e, 'name') + dp('name') + ' style="font-size:' + px(fn) +
+      ';color:' + T.name + ';letter-spacing:0.03em;white-space:nowrap;overflow:hidden">' +
+      esc(e.name) + '</span>';
+    var city = '<span class="label"' + evf(e, 'city') + dp('city') + ' style="font-size:' + px(fc) +
+      ';color:' + T.city + ';letter-spacing:0.16em;white-space:nowrap;' +
+      (wide ? 'flex:none' : 'overflow:hidden') + '">' + marker(e.city) + '</span>';
+
+    return rule(x, y, w, T.rowRule, null, 'rowRule') + (wide
+      ? row(Z.dateTop, date, day) + row(Z.nameTop, name, city)
+      : row(Z.dateTop, date) + row(Z.nameTop, name) + row(Z.cityTop, city, day));
   }
 
-  /* One line, four aligned columns. The date and weekday cells are
-     the width of the widest date and weekday in the list, so every
-     name starts on the same vertical and the eye runs down it. */
-  function lineRow(x, y, w, e, pitch, sz) {
-    var tall = Math.max(sz.fd * 0.92, sz.fn);
-    var top = y + (pitch - tall) / 2;
-    return rule(x, y, w, T.rowRule, null, 'rowRule') +
-      '<div style="position:absolute;left:' + x + 'px;top:' + px(top) + ';width:' + w +
-        'px;display:flex;align-items:baseline;gap:' + GAP + 'px">' +
-        '<span class="display"' + dp('date') + ' style="flex:none;width:' + px(sz.dateCell) +
-          ';font-size:' + px(sz.fd) + ';color:' + T.date + ';white-space:nowrap">' +
-          esc(S.dateLabel(e)) + '</span>' +
-        '<span class="label"' + dp('day') + ' style="flex:none;width:' + px(sz.dayCell) +
-          ';font-size:' + px(sz.fc) + ';color:' + T.day + ';letter-spacing:0.16em;white-space:nowrap">' +
-          esc(S.dayLabel(e)) + '</span>' +
-        '<span class="label-narrow"' + evf(e, 'name') + dp('name') + ' style="flex:1;min-width:0;font-size:' +
-          px(sz.fn) + ';color:' + T.name + ';letter-spacing:0.03em;white-space:nowrap;overflow:hidden">' +
-          esc(e.name) + '</span>' +
-        '<span class="label"' + evf(e, 'city') + dp('city') + ' style="flex:none;font-size:' + px(sz.fc) +
-          ';color:' + T.city + ';letter-spacing:0.16em;white-space:nowrap;text-align:right">' +
-          marker(e.city) + '</span>' +
-      '</div>';
-  }
-
-  function band(x, y, w, o, pitch) {
+  function band(x, y, w, o, pitch, textW) {
     var h = pitch * BAND_RATIO;
-    var fy = cap(pitch * SZ.bandYear, CAP.bandYear), fs = cap(pitch * SZ.bandSub, CAP.bandSub);
+    var fy = cap(pitch * SZ.bandYear, CAP.bandYear), fs = cap(pitch * SZ.bandSub, CAP.city);
     return rule(x, y, w, T.bandRule, 3, 'bandRule') +
-      (o.tick ? '<div' + dp('bandTick') + ' style="position:absolute;left:' + (x - 16) + 'px;top:' + px(y + h * 0.18) +
-        ';width:6px;height:' + px(h * 0.6) + ';background:' + T.bandTick + '"></div>' : '') +
-      '<div style="position:absolute;left:' + x + 'px;top:' + px(y + h * 0.18) + ';width:' + w +
-      'px;display:flex;justify-content:space-between;align-items:baseline">' +
+      (o.tick ? '<div' + dp('bandTick') + ' style="position:absolute;left:' + (x - 16) + 'px;top:' + px(y + h * 0.20) +
+        ';width:6px;height:' + px(h * 0.55) + ';background:' + T.bandTick + '"></div>' : '') +
+      '<div style="position:absolute;left:' + x + 'px;top:' + px(y + h * 0.20) + ';width:' +
+      (textW || w) + 'px;display:flex;justify-content:space-between;align-items:baseline">' +
       '<span class="display"' + dp('bandYear') + ' style="font-size:' + px(fy) + ';color:' + T.bandYear +
       ';letter-spacing:0.01em">' + esc(o.label) + '</span>' +
-      '<span class="label"' + dp('bandLabel') + ' style="font-size:' + px(fs) + ';color:' + T.bandLabel +
-      ';letter-spacing:0.18em">' + esc(o.sub) + '</span></div>';
+      '<span class="label"' + (o.subPath ? ed(o.subPath) : '') + dp('bandLabel') + ' style="font-size:' + px(fs) +
+      ';color:' + T.bandLabel + ';letter-spacing:0.18em">' + esc(o.sub) + '</span></div>';
   }
   function bandHeight(pitch) { return pitch * BAND_RATIO; }
 
-  function emptyRow(y, pitch, x, w) {
-    var fc = cap(pitch * 0.30, CAP.lineCity);
-    var text = 'GEEN BEURZEN DEZE MAAND';
-    fc = Math.min(fc, fitTo(text, FACE.small, w, fc));
-    return rule(x, y, w, T.rowRule, null, 'rowRule') +
-      '<div class="label"' + dp('city') + ' style="position:absolute;left:' + x + 'px;top:' +
-      px(y + (pitch - fc) / 2) + ';width:' + w + 'px;font-size:' + px(fc) + ';color:' + T.city +
-      ';letter-spacing:0.16em">' + text + '</div>';
-  }
-
-  /* ---------- the list: groups → plan → pages ---------- */
-  function groupByMonth(rows) {
-    var out = [], last = null;
-    rows.forEach(function (e) {
-      var k = S.monthKey(e.start), d = S.parse(e.start);
-      if (!last || last.key !== k) {
-        last = { key: k, label: d ? S.MONTHS[d.getUTCMonth()] : '', sub: d ? String(d.getUTCFullYear()) : '', events: [] };
-        out.push(last);
-      }
-      last.events.push(e);
-    });
-    return out;
-  }
-  function unitsOf(groups) {
-    return groups.reduce(function (n, g) { return n + BAND_RATIO + Math.max(g.events.length, 1); }, 0);
-  }
-
-  /* Two lines while they still read; one line when they would not.
-     Both shapes share the pitch — the row count is the row count —
-     so this is purely about how the height is spent. */
-  function plan(rows, groups, F, avail, w) {
-    var pitch = Math.min(F.pitchMax, avail / Math.max(unitsOf(groups), 1));
-    var wide = sizesFor(pitch, w, 'wide', rows);
-    if (wide.fn >= F.wideMin) return { shape: 'wide', pitch: pitch, sizes: wide };
-    return { shape: 'line', pitch: pitch, sizes: sizesFor(pitch, w, 'line', rows) };
-  }
-
-  /* Split into the fewest pages on which every page sets the name at
-     F.minName or better. Page breaks snap to a month boundary when
-     one is within two rows, so a month is not cut for the sake of
-     an even count. */
-  function paginate(rows, groupFn, F, avail, w, mode) {
-    if (mode === 'one' || rows.length <= 1) return [rows];
-    for (var n = 1; n <= 6; n++) {
-      var pages = splitBalanced(rows, n);
-      var ok = pages.every(function (pg) {
-        return plan(pg, groupFn(pg), F, avail, w).sizes.fn >= F.minName;
-      });
-      if (ok) return pages;
-    }
-    return splitBalanced(rows, 6);
-  }
-  function splitBalanced(rows, n) {
-    if (n <= 1) return [rows];
-    var per = Math.ceil(rows.length / n), pages = [], i = 0;
-    while (i < rows.length) {
-      var end = Math.min(rows.length, i + per);
-      for (var d = 0; d <= 2 && end - d > i + 1 && end - d < rows.length; d++) {
-        if (S.monthKey(rows[end - d].start) !== S.monthKey(rows[end - d - 1].start)) { end -= d; break; }
-      }
-      pages.push(rows.slice(i, end)); i = end;
-    }
-    return pages;
-  }
-
-  function drawList(x, y, w, groups, P) {
-    var html = '', hits = [], first = true;
-    groups.forEach(function (g) {
-      html += band(x, y, w, { label: g.label, sub: g.sub, tick: first }, P.pitch);
-      first = false;
-      y += bandHeight(P.pitch);
-      if (!g.events.length) { html += emptyRow(y, P.pitch, x, w); y += P.pitch; return; }
-      g.events.forEach(function (e) {
-        html += P.shape === 'line' ? lineRow(x, y, w, e, P.pitch, P.sizes)
-                                   : wideRow(x, y, w, e, P.pitch, P.sizes);
-        hits.push({ id: e._id, x: x, y: y, w: w, h: P.pitch });
-        y += P.pitch;
-      });
-    });
-    html += rule(x, y, w, T.rowRule, null, 'rowRule');
-    return { html: html, hits: hits, bottom: y };
-  }
-
-  /* ---------- the footer ----------
-     The closing line is fitted to one line: the client's own copy
-     ("WIJ KOPEN IN! DM OM VOORAF EEN DEAL TE MAKEN!") wrapped at the
-     fixed size and pushed the signoff off the card. */
+  /* The quiet zone is the well's own padding rather than baked into
+     the SVG, so it stays measurable — same rule as on the banner. */
   function qrBlock(x, y, box, url) {
     var quiet = Math.round(box * 0.11), code = box - quiet * 2;
     return '<div' + dp('qrFrame') + ' style="position:absolute;left:' + x + 'px;top:' + y + 'px;width:' + box +
@@ -386,16 +350,14 @@
 
   function footer(st, F) {
     var qrX = W - SIDE - F.qr, qrY = F.footRule + 22;
-    var textW = CW - F.qr - 56;
-    var fClose = Math.max(34, fitTo(st.meta.closing, FACE.date, textW, F.closing));
     return rule(SIDE, F.footRule, CW, T.footRule, null, 'footRule') +
       '<div style="position:absolute;left:' + SIDE + 'px;top:' + (F.footRule + 34) +
-      'px;width:' + textW + 'px">' +
-      '<div class="display"' + ed('meta.closing') + dp('closing') + ' style="font-size:' + px(fClose) +
-      ';color:' + T.closing + ';line-height:1.02;white-space:nowrap;overflow:hidden">' + esc(st.meta.closing) + '</div>' +
+      'px;width:' + (CW - F.qr - 56) + 'px">' +
+      '<div class="display"' + ed('meta.closing') + dp('closing') + ' style="font-size:' + F.closing +
+      'px;color:' + T.closing + ';line-height:1.02">' + esc(st.meta.closing) + '</div>' +
       '<div class="body"' + ed('meta.note') + dp('note') + ' style="font-size:' + F.note + 'px;color:' +
-      T.note + ';margin-top:14px">' + esc(st.meta.note) + '</div>' +
-      '<div style="display:flex;gap:22px;align-items:baseline;margin-top:22px">' +
+      T.note + ';margin-top:16px">' + esc(st.meta.note) + '</div>' +
+      '<div style="display:flex;gap:22px;align-items:baseline;margin-top:26px">' +
       '<span class="label"' + ed('meta.handle') + dp('handle') + ' style="font-size:' + F.sign + 'px;color:' +
       T.handle + '">' + esc(st.meta.handle) + '</span>' +
       '<span class="label"' + ed('meta.region') + dp('region') + ' style="font-size:' + F.sign + 'px;color:' +
@@ -403,11 +365,29 @@
       qrBlock(qrX, qrY, F.qr, st.meta.qrUrl);
   }
 
+  /* A quiet line for a month with nothing in it. An empty month is
+     information: it tells a collector not to wait. */
+  function emptyRow(y, pitch, x, w) {
+    x = x == null ? SIDE : x; w = w == null ? CW : w;
+    var fc = cap(pitch * 0.175, CAP.city);
+    var text = w >= WIDE ? 'GEEN BEURZEN DEZE MAAND' : 'GEEN BEURZEN';
+    /* the label is tracked at 0.16em, so it has to be measured like
+       any other string before it is allowed to run past the column */
+    var wAt100 = widthAt100(text, FACE.small);
+    if (wAt100 > 0) fc = Math.min(fc, w * 100 / wAt100);
+    return rule(x, y, w, T.rowRule, null, 'rowRule') +
+      '<div class="label"' + dp('city') + ' style="position:absolute;left:' + x + 'px;top:' +
+      px(y + pitch * 0.30) + ';width:' + w + 'px;font-size:' + px(fc) + ';color:' + T.city +
+      ';letter-spacing:0.16em">' + text + '</div>';
+  }
+
   global.Card = {
-    W: W, SIDE: SIDE, CW: CW, FORMATS: FORMATS, formatOf: formatOf, useTheme: useTheme,
-    BAND_RATIO: BAND_RATIO, esc: esc, rule: rule,
-    ground: ground, header: header, headerScale: headerScale, headerDepth: headerDepth, HEAD_MAX: HEAD_MAX,
-    footer: footer, groupByMonth: groupByMonth, unitsOf: unitsOf,
-    plan: plan, paginate: paginate, drawList: drawList, sizesFor: sizesFor
+    W: W, SIDE: SIDE, CW: CW, FORMATS: FORMATS, formatOf: formatOf,
+    BAND_RATIO: BAND_RATIO, WIDE: WIDE, useTheme: useTheme,
+    esc: esc, marker: marker, ed: ed, evf: evf, rule: rule,
+    ground: ground, header: header, eventRow: eventRow, band: band,
+    bandHeight: bandHeight, footer: footer, qrBlock: qrBlock, emptyRow: emptyRow,
+    sizesFor: sizesFor, betterPlan: betterPlan,
+    headerScale: headerScale, headerDepth: headerDepth
   };
 })(window);

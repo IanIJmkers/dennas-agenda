@@ -335,15 +335,10 @@
         open.length + ' plaats(en) staan nog als ‹STAD› en drukken rood af: ' +
         open.map(function (e) { return e.name; }).join(', ') + '.', false]);
     }
-    if (layout && layout.pages > 1) {
-      out.push(['Verdeeld over ' + layout.pages + ' kaarten',
-        'Op één kaart zou de tekst te klein worden. Download met “Alle pagina’s” en ' +
-        'post ze als carrousel — of kies “1 kaart” rechtsboven als het per se op één moet.', true]);
-    }
-    if (layout && layout.pages === 1 && st.meta.pages === 'one' && layout.name < 28) {
-      out.push(['Klein',
-        'Alles staat op één kaart, maar de namen zijn nu ' + Math.round(layout.name) +
-        'px — van een telefoon af is dat lastig. “Auto” verdeelt het over meer kaarten.', false]);
+    if (layout && layout.pitch < 62 && layout.mode === 'two') {
+      out.push(['Vol',
+        'De agenda zit vol. Nog meer beurzen worden kleiner gezet dan prettig leest — ' +
+        'overweeg de 2-maanden versie voor de korte termijn.', false]);
     }
 
     var weak = TEXT_PARTS.filter(function (p) { return ratio(th[p[0]], th.bg) < 4.5; });

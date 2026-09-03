@@ -4,8 +4,8 @@ Twee bewerkbare kaarten voor Instagram, in de huisstijl:
 
 | Pagina | Wat het is |
 |---|---|
-| `agenda.html` | De volledige agenda — alle beurzen per maand, over zoveel kaarten als nodig |
-| `snapshot.html` | Twee maanden — de kaart om te posten als er een beurs aankomt |
+| `agenda.html` | De volledige agenda — alle beurzen, twee kolommen, jaarbalk waar het jaar wisselt |
+| `snapshot.html` | Twee maanden, veel groter gezet — de kaart om te posten als er een beurs aankomt |
 | `index.html` | Startpagina met een link naar allebei |
 
 Beide kaarten lezen **dezelfde lijst met beurzen**. Wat je bij de één invult, staat
@@ -20,34 +20,25 @@ er voor het gewone feed-bericht; daar is 570 pixels minder hoogte, dus bij een v
 agenda wordt de tekst kleiner. De kolom rechts zegt het als dat gebeurt.
 
 **De kop.** Het logo staat groot en gecentreerd bovenaan, met het woord AGENDA
-eronder. De bovenregel en de periode staan op 30 px — groot genoeg om op een
-telefoon te lezen.
+eronder. Bij een drukke agenda krimpt de hele kop mee zodat de lijst kan blijven
+ademen.
 
-**De lijst.** Beurzen staan per maand bij elkaar, met de maand als balk. Is de
-lijst rustig, dan krijgt elke beurs twee regels (datum en weekdag boven, naam en
-plaats eronder). Wordt hij drukker, dan gaat elke beurs op **één regel**: datum,
-weekdag, naam, plaats, in nette kolommen. Het kleinste op zo'n regel is driekwart
-van de naam — er is geen "kleine regel" meer die op een telefoon wegvalt.
+**Hoeveel past er leesbaar op?** De kaart kiest zelf de vorm die de tekst het
+grootst zet — één kolom over de volle breedte, of twee kolommen naast elkaar — en
+meet daarvoor de echte namen.
 
-**Meerdere kaarten.** Past het niet op één kaart zonder dat de namen onder de 30 px
-zakken, dan wordt de agenda verdeeld over **meerdere kaarten** — een carrousel, zoals
-elke organisator dat op Instagram post. Rechtsboven zie je dan ◀ 1 / 2 ▶ om te
-bladeren, en *Alle pagina's* downloadt ze allemaal achter elkaar. Wil je het per se op
-één kaart, kies dan *1 kaart* (naast *Auto*); de tekst wordt dan kleiner en de kolom
-rechts zegt erbij hoe klein.
+Wat dat concreet oplevert, gemeten in de browser:
 
-Wat dat concreet oplevert, gemeten in de browser (9:16, tenzij anders vermeld):
+| Wat erop staat | Datum | Naam | Plaats |
+|---|---|---|---|
+| 5 beurzen in 2 maanden (2-maandenkaart) | 65 px | 47 px | 28 px |
+| **elke week een beurs — 10 in 2 maanden** | **55 px** | **41 px** | **24 px** |
+| 15 beurzen (volledige agenda) | 42 px | 32 px | 18 px |
+| 26 beurzen (volledige agenda) | 28 px | 22 px | 12 px |
 
-| Wat erop staat | Kaarten | Datum | Naam | Plaats |
-|---|---|---|---|---|
-| 5 beurzen in 2 maanden | 1 | 62 px | 45 px | 27 px |
-| **elke week een beurs — 10 in 2 maanden** | **1** | **42 px** | **36 px** | **28 px** |
-| 15 beurzen (volledige agenda) | 2 | 42 px | 36 px | 28 px |
-| 15 beurzen, 4:5 | 2 | 40 px | 35 px | 27 px |
-| 26 beurzen (volledige agenda) | 3 | 46 px | 40 px | 30 px |
-
-Ter vergelijking: vóór deze indeling stonden 23 beurzen op één kaart met de naam
-op 23 px en de plaats op 13 px — op een telefoon 8 en 4,6 punt.
+Rond de 26 beurzen is het te klein om nog van een afstandje te lezen. Dat is geen
+fout in de kaart — dat is wat er gebeurt als er te veel op één vlak moet. Gebruik dan
+de 2-maandenkaart voor wat er echt aankomt, en de volledige agenda als naslag.
 
 ---
 
@@ -166,9 +157,9 @@ letters. 36 controles.
 - De QR in de geëxporteerde PNG is **gedecodeerd** en levert de ingestelde link op —
   ook nadat de link is aangepast. Bij 29 modules (de standaardlink) is dat de
   grofste en dus best scanbare variant; houd de link kort.
-- 5, 6, 10, 15 en 26 beurzen, in beide formaten: elke kaart zet de naam op minstens
-  30 px (24 px bij 4:5) en de plaats op minstens 24 px; wat niet past gaat naar een
-  volgende kaart, en elke kaart daarvan wordt apart geëxporteerd en gedecodeerd.
+- 6, 15 en 26 beurzen, in beide formaten: bij elk aantal past alles binnen de
+  voetregel. De regelhoogte en de tekstgrootte bewegen mee, zodat lijnen nooit door
+  tekst lopen.
 - Een weekend dat over de maandgrens loopt (31.10–01.11) valt niet uit de
   2-maandenkaart.
 - Niets uit het gereedschap komt in de export, ook niet als de muis op een veld staat.
