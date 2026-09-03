@@ -19,10 +19,13 @@ story-formaat, en het is het enige formaat waar én het logo groot en centraal k
 er voor het gewone feed-bericht; daar is 570 pixels minder hoogte, dus bij een volle
 agenda wordt de tekst kleiner. De kolom rechts zegt het als dat gebeurt.
 
+**De kop.** Het logo staat groot en gecentreerd bovenaan en is het eerste wat je
+ziet; het woord AGENDA staat eronder, een slag kleiner dan de naam in het logo.
+Bij een drukke agenda krimpt de hele kop mee zodat de lijst kan blijven ademen.
+
 **Hoeveel past er leesbaar op?** De kaart kiest zelf de vorm die de tekst het
 grootst zet — één kolom over de volle breedte, of twee kolommen naast elkaar — en
-meet daarvoor de echte namen. Bij een drukke agenda geeft de kop bovendien ruimte
-terug: het logo en het woord AGENDA krimpen mee zodat de lijst kan blijven ademen.
+meet daarvoor de echte namen.
 
 Wat dat concreet oplevert, gemeten in de browser:
 
@@ -142,6 +145,12 @@ Twee manieren, allebei zonder build:
 `cleanUrls` staat aan, dus `/agenda` en `/snapshot` werken naast `/agenda.html`.
 
 ### Wat gecontroleerd is
+
+Alles hieronder wordt automatisch nagelopen met `npm run site:check` in de
+hoofdrepo: die stuurt beide pagina's aan in Chromium, exporteert zes gevallen
+zoals de knop dat doet, leest de PNG terug, decodeert de QR eruit en meet de
+letters. 36 controles.
+
 
 - Export komt er exact op het gekozen formaat uit (1080 × 1920 of 1080 × 1350),
   ongeacht de vensterbreedte.
