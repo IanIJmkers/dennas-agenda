@@ -41,7 +41,11 @@
       /* 'story' = 1080x1920, 'post' = 1080x1350. Story is the
          default: it is the only one with room for a centred lockup
          and dates that carry at arm's length on a phone. */
-      format: 'story'
+      format: 'story',
+      /* 'auto' splits the list across cards when one would set the
+         show names under the format's floor; 'one' forces a single
+         card and lets the type shrink. */
+      pages: 'auto'
     },
     seasons: { '2026': 'NAJAAR', '2027': 'VOORJAAR' },
 

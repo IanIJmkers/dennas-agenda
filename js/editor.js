@@ -179,11 +179,52 @@
     return n;
   }
 
+  /* ---------- pages ----------
+     The renderer reports how many cards the list needs and which one
+     is showing; the stepper only appears when there is more than one.
+     "Alle pagina's" walks them and exports each in turn. */
+  var renderer = function () { return global.Agenda || global.Snapshot; };
+  function pager(count, index) {
+    var box = document.querySelector('#pages');
+    if (!box) return;
+    box.hidden = count <= 1;
+    var lab = box.querySelector('[data-page-label]');
+    if (lab) lab.textContent = (index + 1) + ' / ' + count;
+    var all = document.querySelector('#pngall');
+    if (all) all.hidden = count <= 1;
+  }
+  function exportAll(base, btn) {
+    var R = renderer(), n = R.pages(), start = R.page(), label = btn && btn.textContent;
+    if (btn) { btn.disabled = true; }
+    var i = 0;
+    var step = function () {
+      if (i >= n) { R.setPage(start); if (btn) { btn.disabled = false; btn.textContent = label; } return; }
+      if (btn) btn.textContent = 'Pagina ' + (i + 1) + ' van ' + n + '…';
+      R.setPage(i);
+      exportPNG(base.replace(/\.png$/, '') + '-' + (i + 1) + '.png').then(function () { i++; setTimeout(step, 400); });
+    };
+    step();
+  }
+
   /* ---------- wire the toolbar every page shares ---------- */
   function wireBar(opts) {
     var q = function (s) { return document.querySelector(s); };
     var b;
-    if ((b = q('#png'))) b.onclick = function () { exportPNG(opts.filename, b); };
+    if ((b = q('#png'))) b.onclick = function () {
+      var R = renderer(), n = R.pages();
+      var name = n > 1 ? opts.filename.replace(/\.png$/, '') + '-' + (R.page() + 1) + '.png' : opts.filename;
+      exportPNG(name, b);
+    };
+    if ((b = q('#pngall'))) b.onclick = function () { exportAll(opts.filename, b); };
+    if ((b = q('#prev'))) b.onclick = function () { var R = renderer(); R.setPage(R.page() - 1); };
+    if ((b = q('#next'))) b.onclick = function () { var R = renderer(); R.setPage(R.page() + 1); };
+    Array.prototype.forEach.call(document.querySelectorAll('[data-pages]'), function (n) {
+      n.onclick = function () {
+        Store.setPath('meta.pages', n.getAttribute('data-pages'), true);
+        opts.onData(); markPages();
+      };
+    });
+    markPages();
     if ((b = q('#pdf'))) b.onclick = function () { global.print(); };
     if ((b = q('#save'))) b.onclick = function () { download('dennas-agenda.json', Store.toJSON()); };
     if ((b = q('#open'))) b.onclick = function () { importJSON(opts.onData); };
@@ -216,6 +257,12 @@
     }
   }
 
+  function markPages() {
+    var cur = Store.load().meta.pages || 'auto';
+    Array.prototype.forEach.call(document.querySelectorAll('[data-pages]'), function (n) {
+      n.classList.toggle('on', n.getAttribute('data-pages') === cur);
+    });
+  }
   function markFormat() {
     var cur = Store.load().meta.format;
     Array.prototype.forEach.call(document.querySelectorAll('[data-format]'), function (n) {
@@ -224,7 +271,7 @@
   }
 
   global.Editor = {
-    setSize: setSize, bindEventFields: bindEventFields,
+    setSize: setSize, bindEventFields: bindEventFields, pager: pager, exportAll: exportAll,
     fitStage: fitStage, bindEditables: bindEditables, exportPNG: exportPNG,
     download: download, importJSON: importJSON, copyShareLink: copyShareLink,
     el: el, wireBar: wireBar
