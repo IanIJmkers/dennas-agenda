@@ -232,7 +232,12 @@
      Every measurement in the header scales together, so its depth is
      exactly linear in the scale and the right one is solved for
      rather than searched. */
-  var COMFORT_PITCH = 96, HEAD_MIN = 0.72;
+  /* HEAD_MAX is the header's full size, and it is 0.88 rather than 1:
+     even on a quiet card the lockup and the word AGENDA were taking
+     more depth than the list they introduce. Everything in the header
+     scales together, so this is a proportional trim rather than a set
+     of nudged numbers, and the lockup stays the focal point. */
+  var COMFORT_PITCH = 96, HEAD_MAX = 0.88, HEAD_MIN = 0.72;
 
   function headerDepth(F, s) {
     return (s == null ? 1 : s) *
@@ -241,9 +246,7 @@
   }
   function headerScale(F, units) {
     var room = F.footRule - 28 - COMFORT_PITCH * Math.max(units, 1);
-    var full = headerDepth(F, 1);
-    if (room >= full) return 1;
-    return Math.max(HEAD_MIN, room / full);
+    return Math.max(HEAD_MIN, Math.min(HEAD_MAX, room / headerDepth(F, 1)));
   }
 
   function header(st, F, copy, s) {

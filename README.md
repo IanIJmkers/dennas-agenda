@@ -28,10 +28,10 @@ Wat dat concreet oplevert, gemeten in de browser:
 
 | Wat erop staat | Datum | Naam | Plaats |
 |---|---|---|---|
-| 4 beurzen in 2 maanden | 60 px | 43 px | 26 px |
-| **elke week een beurs (10 in 2 maanden)** | **50 px** | **39 px** | **22 px** |
-| 15 beurzen, hele agenda | 47 px | 36 px | 21 px |
-| 26 beurzen, hele agenda | 28 px | 22 px | 12 px |
+| 5 beurzen in 2 maanden (2-maandenkaart) | 65 px | 47 px | 28 px |
+| **elke week een beurs — 10 in 2 maanden** | **55 px** | **41 px** | **24 px** |
+| 15 beurzen (volledige agenda) | 42 px | 32 px | 18 px |
+| 26 beurzen (volledige agenda) | 28 px | 22 px | 12 px |
 
 Rond de 26 beurzen is het te klein om nog van een afstandje te lezen. Dat is geen
 fout in de kaart — dat is wat er gebeurt als er te veel op één vlak moet. Gebruik dan
