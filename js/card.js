@@ -41,16 +41,10 @@
   var W = 1080, SIDE = 72, CW = W - SIDE * 2;
 
   var FORMATS = {
-    /* Hierarchy: the lockup leads, the word AGENDA follows. At these
-       numbers the wordmark DENNA'S sets at 0.30 × logoW ≈ 79px and
-       AGENDA at 70px — a clear step down, not a shout over the logo.
-       The previous 130px had AGENDA at 114px against a 74px wordmark,
-       which read as the card's name being AGENDA and the shop's name
-       being the small print. */
-    story: { key: 'story', h: 1920, logoW: 300, top: 70, head: 80, small: 24,
+    story: { key: 'story', h: 1920, logoW: 280, top: 70, head: 130, small: 24,
              footRule: 1640, closing: 56, note: 24, sign: 22, qr: 180,
              pitchMax1: 176, pitchMax2: 176 },
-    post:  { key: 'post',  h: 1350, logoW: 214, top: 52, head: 56, small: 20,
+    post:  { key: 'post',  h: 1350, logoW: 200, top: 52, head: 92,  small: 20,
              footRule: 1130, closing: 44, note: 21, sign: 20, qr: 152,
              pitchMax1: 150, pitchMax2: 150 }
   };

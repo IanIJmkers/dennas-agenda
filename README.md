@@ -19,9 +19,9 @@ story-formaat, en het is het enige formaat waar én het logo groot en centraal k
 er voor het gewone feed-bericht; daar is 570 pixels minder hoogte, dus bij een volle
 agenda wordt de tekst kleiner. De kolom rechts zegt het als dat gebeurt.
 
-**De kop.** Het logo staat groot en gecentreerd bovenaan en is het eerste wat je
-ziet; het woord AGENDA staat eronder, een slag kleiner dan de naam in het logo.
-Bij een drukke agenda krimpt de hele kop mee zodat de lijst kan blijven ademen.
+**De kop.** Het logo staat groot en gecentreerd bovenaan, met het woord AGENDA
+eronder. Bij een drukke agenda krimpt de hele kop mee zodat de lijst kan blijven
+ademen.
 
 **Hoeveel past er leesbaar op?** De kaart kiest zelf de vorm die de tekst het
 grootst zet — één kolom over de volle breedte, of twee kolommen naast elkaar — en
